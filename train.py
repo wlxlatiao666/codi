@@ -53,7 +53,17 @@ class CustomTrainer(Trainer):
         loss = outputs["loss"]
         #"ce_loss": ce_loss_total, "mse_loss": mse_loss_total, "ref_ce_loss": ref_ce_loss
         if step % self.args.logging_steps == 0:
-            self.log({"loss": loss.item(), "ce_loss": outputs["ce_loss"], "distill_loss": outputs["distill_loss"], "ref_ce_loss": outputs["ref_ce_loss"],})
+            log_dict = {
+                "loss": loss.item(),
+                "ce_loss": outputs["ce_loss"],
+                "distill_loss": outputs["distill_loss"],
+                "ref_ce_loss": outputs["ref_ce_loss"],
+            }
+            if "align_loss" in outputs:
+                log_dict["align_loss"] = outputs["align_loss"]
+            if "align_weight" in outputs:
+                log_dict["align_weight"] = outputs["align_weight"]
+            self.log(log_dict)
         return loss
 
     def log(self, logs, start_time=None):
@@ -123,10 +133,10 @@ def train():
         elif any(name in model_args.model_name_or_path.lower() for name in ["phi"]):
             target_modules = ["q_proj", "k_proj", "v_proj", "dense", "fc1", "fc2"]
         elif any(name in model_args.model_name_or_path.lower() for name in ["gpt2"]):
-            target_modules = ["c_attn", "c_proj", 'c_fc']
+            target_modules = ["c_attn", "c_proj", "c_fc"]
         else:
-            raise ValueError(f"Only support LLAMA, Mistral, Falcon, Phi-2, but got {model_args.model_name_or_path}.")
-        
+            raise ValueError(f"Only support LLAMA, Mistral, Falcon, Phi-2, but got {model_args.model_name_or_path}")
+
         lora_config = LoraConfig(
             task_type=task_type,
             inference_mode=False,
@@ -164,12 +174,13 @@ def train():
             breakpoint()
 
     def preprocess(
-        sources: Sequence[str], 
-        targets: Sequence[str], 
+        sources: Sequence[str],
+        targets: Sequence[str],
         answers: Sequence[str],
-        tokenizer: transformers.PreTrainedTokenizer, 
+        tokenizer: transformers.PreTrainedTokenizer,
         bot_id: int,
         eot_id: int,
+        use_cross_attn_align: bool = False,
     ) -> Dict:
         print("Tokenizing inputs... This may take some time...")
         sources_id = _tokenize_fn(sources, tokenizer)["input_ids"]
@@ -192,7 +203,17 @@ def train():
             z = x.clone()
             z[:len(y)] = -100
             ref_labels.append(z)
-        
+
+        # ===== 计算 CoT 的位置信息 (用于 cross-attention 对齐) =====
+        ref_cot_start = []
+        ref_cot_end = []
+        if use_cross_attn_align:
+            for src, cot, ref in zip(sources_id, cot_id, ref_input_ids):
+                ref_cot_start.append(len(src))  # CoT 开始位置
+                ref_cot_end.append(len(src) + len(cot))  # CoT 结束位置
+            ref_cot_start = torch.tensor(ref_cot_start, dtype=torch.long)
+            ref_cot_end = torch.tensor(ref_cot_end, dtype=torch.long)
+
         # add eot to source
         sources_id = [torch.tensor(x.numpy().tolist() + [bot_id], dtype=torch.long) for x in sources_id]
         # add eot and eos
@@ -205,25 +226,42 @@ def train():
         if answer_prompts[0][0] == tokenizer.bos_token_id: # remove the bos
             answer_prompts[0] = answer_prompts[0][1:]
             answer_prompts[1] = answer_prompts[1][1:]
-        
+
         ref_answer_position = [get_answer_token_position(x, answer_prompts, tokenizer) for i, x in enumerate(ref_input_ids)]
         model_answer_position = [get_answer_token_position(x, answer_prompts, tokenizer) for x in answers_id]
 
         ref_eos_position = [len(x)-1 for x in ref_input_ids]
         model_eos_position = [len(x)-1 for x in answers_id]
-        return dict(encoder_input_ids=sources_id, decoder_input_ids=answers_id, ref_input_ids=ref_input_ids, labels=answers_id, \
-                    ref_answer_position=ref_answer_position, model_answer_position=model_answer_position, \
-                        ref_eos_position=ref_eos_position, model_eos_position=model_eos_position, ref_labels=ref_labels)
+
+        output_dict = dict(
+            encoder_input_ids=sources_id,
+            decoder_input_ids=answers_id,
+            ref_input_ids=ref_input_ids,
+            labels=answers_id,
+            ref_answer_position=ref_answer_position,
+            model_answer_position=model_answer_position,
+            ref_eos_position=ref_eos_position,
+            model_eos_position=model_eos_position,
+            ref_labels=ref_labels,
+        )
+
+        # 添加 CoT 位置信息
+        if use_cross_attn_align:
+            output_dict["ref_cot_start"] = ref_cot_start
+            output_dict["ref_cot_end"] = ref_cot_end
+
+        return output_dict
 
 
     class SupervisedDataset(Dataset):
         QUESTION_PROMPT = "\nAnswer the above question. First think step by step and then answer the final number.\n"
         QUESTION_DA_PROMPT = "\nAnswer the above question. Answer the final number directly in one number.\n"
-        def __init__(self, data_name, raw_data, tokenizer, bot, eot):
+        def __init__(self, data_name, raw_data, tokenizer, bot, eot, use_cross_attn_align=False):
             super(SupervisedDataset, self).__init__()
             logging.warning("Formatting inputs...")
 
             self.data_name = data_name
+            self.use_cross_attn_align = use_cross_attn_align
             questions, cots, answers = [], [], []
             num_ops_list = []
             operators = ["+", "-", "*", "/"]
@@ -237,12 +275,12 @@ def train():
                     # bad data
                     if example["answer"] is None: # or example["response"] is None:
                         continue
-                    
+
                     # avoid OOM: remove very long data
                     token_num = len(tokenizer.encode(example["question"] + example["cot"] + example["answer"]))
                     if token_num > training_args.max_token_num:
                         continue
- 
+
                     cot = f"{example['cot']}".split(". ")
                     if not (training_args.include_last_cot):
                         cot = cot[:-1]
@@ -253,7 +291,7 @@ def train():
                     answer = f"The answer is: {answer}"
                     answer = answer.replace("####", "")
                     questions.append(question)
-                    
+
                     if cot:
                         cot = ". ".join(cot)+".\n"
                     else:
@@ -265,22 +303,22 @@ def train():
                     token_num = len(tokenizer.encode(example["question"] + example["cot"] + example["answer"]))
                     if token_num > training_args.max_token_num:
                         continue
- 
+
                     cot_list = []
                     cot = f"{example['cot']}".split(" ")
                     if not training_args.include_last_cot:
                         cot = cot[:-1]
-                    
-                    len_cot = len(cot) 
+
+                    len_cot = len(cot)
                     for i in range(training_args.num_latent):
                         cot_list.append(" ".join(cot[:max(0, len_cot-i)]))
                     answer = example['answer'].split(' ')[-1]
-                    
-                    # some answers startwith the negative sign (-), bringing distillation problems for LLaMA
+
+                    # some answers startswith the negative sign (-), bringing distillation problems for LLaMA
                     if not answer[0].isdigit():
                         continue
 
-                    answer = f"The answer is: {answer}" 
+                    answer = f"The answer is: {answer}"
                     answer = answer.replace("####", "")
                     questions.append(question)
                     cots.append(" ".join(cot))
@@ -289,10 +327,10 @@ def train():
                     question = example['question'].strip() + '\n'
                     cot = example['cot'].strip() + "\n"
                     answer = f"The answer is: {str(example['answer']).strip()}"
-                    
+
                     # avoid OOM: remove very long data
                     token_num = len(tokenizer.encode(question + " " + cot + " " + answer))
-                    if token_num > training_args.max_token_num: 
+                    if token_num > training_args.max_token_num:
                         continue
                     questions.append(question)
                     cots.append(cot)
@@ -301,10 +339,10 @@ def train():
                     question = example['question'].strip() + '\n'
                     cot = '\n'.join(example['steps'][:-1]) + "\n"
                     answer = f"The answer is: {str(example['answer']).strip()}"
-                    
+
                     # avoid OOM: remove very long data
                     token_num = len(tokenizer.encode(question + " " + cot + " " + answer))
-                    if token_num > training_args.max_token_num: 
+                    if token_num > training_args.max_token_num:
                         continue
                     questions.append(question)
                     cots.append(cot)
@@ -315,11 +353,11 @@ def train():
                 questions = questions[:training_args.exp_data_num]
                 cots = cots[:training_args.exp_data_num]
                 answers = answers[:training_args.exp_data_num]
-            
+
             print(f"{len(cots)} data in total...")
             logging.warning("Tokenizing inputs... This may take some time...")
 
-            self.data_dict = preprocess(questions, cots, answers, tokenizer, bot, eot)
+            self.data_dict = preprocess(questions, cots, answers, tokenizer, bot, eot, use_cross_attn_align)
             self.keys = list(self.data_dict.keys())
 
 
@@ -333,23 +371,28 @@ def train():
     class DataCollatorForSupervisedDataset(object):
         """Collate examples for supervised fine-tuning."""
         tokenizer: transformers.PreTrainedTokenizer
+        use_cross_attn_align: bool = False
 
         def __call__(self, instances: Sequence[Dict]) -> Dict[str, torch.Tensor]:
-            encoder_input_ids, decoder_input_ids, ref_input_ids, labels, ref_answer_position, model_answer_position, ref_labels= \
-                tuple([instance[key] for instance in instances] for key in ("encoder_input_ids", "decoder_input_ids", "ref_input_ids", "labels", "ref_answer_position", "model_answer_position", "ref_labels"))
-        
+            # 获取所有需要处理的键
+            encoder_input_ids, decoder_input_ids, ref_input_ids, labels, ref_answer_position, model_answer_position, ref_labels = tuple(
+                [instance[key] for instance in instances] for key in
+                ("encoder_input_ids", "decoder_input_ids", "ref_input_ids", "labels", "ref_answer_position",
+                 "model_answer_position", "ref_labels")
+            )
+
             # pad left
             reversed_input_ids = [seq.flip(0) for seq in encoder_input_ids]
             encoder_input_ids = torch.nn.utils.rnn.pad_sequence(reversed_input_ids, batch_first=True, padding_value=self.tokenizer.pad_token_id).flip(1)
-            
+
             # pad
             ref_input_ids = torch.nn.utils.rnn.pad_sequence(ref_input_ids, batch_first=True, padding_value=self.tokenizer.pad_token_id)
-            ref_labels = torch.nn.utils.rnn.pad_sequence(ref_labels, batch_first=True, padding_value=IGNORE_INDEX) 
+            ref_labels = torch.nn.utils.rnn.pad_sequence(ref_labels, batch_first=True, padding_value=IGNORE_INDEX)
 
             decoder_input_ids = torch.nn.utils.rnn.pad_sequence(decoder_input_ids, batch_first=True, padding_value=self.tokenizer.pad_token_id)
             labels = torch.nn.utils.rnn.pad_sequence(labels, batch_first=True, padding_value=IGNORE_INDEX)
-          
-            return dict(
+
+            output_dict = dict(
                 encoder_input_ids=encoder_input_ids,
                 decoder_input_ids=decoder_input_ids,
                 ref_input_ids=ref_input_ids,
@@ -361,6 +404,15 @@ def train():
                 ref_labels=ref_labels,
             )
 
+            # 处理 CoT 位置信息
+            if self.use_cross_attn_align and "ref_cot_start" in instances[0]:
+                ref_cot_start = [instance["ref_cot_start"] for instance in instances]
+                ref_cot_end = [instance["ref_cot_end"] for instance in instances]
+                output_dict["ref_cot_start"] = torch.stack(ref_cot_start, dim=0)
+                output_dict["ref_cot_end"] = torch.stack(ref_cot_end, dim=0)
+
+            return output_dict
+
     def make_supervised_data_module(tokenizer, data_args) -> Dict:
         """Make dataset and collator for supervised fine-tuning."""
         logging.warning("Downloading Data")
@@ -369,8 +421,18 @@ def train():
                 dataset = load_dataset("zen-E/GSM8k-Aug-NL")["train"]
             else:
                 dataset = load_dataset("zen-E/GSM8k-Aug")["train"]
-            train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=dataset, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
-            data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
+            train_dataset = SupervisedDataset(
+                data_name=data_args.data_name,
+                raw_data=dataset,
+                tokenizer=tokenizer,
+                bot=model.bot_id,
+                eot=model.eot_id,
+                use_cross_attn_align=training_args.use_cross_attn_align
+            )
+            data_collator = DataCollatorForSupervisedDataset(
+                tokenizer=tokenizer,
+                use_cross_attn_align=training_args.use_cross_attn_align
+            )
             return dict(train_dataset=train_dataset, eval_dataset=None, data_collator=data_collator)
         elif "strategy" in data_args.data_name:
             dataset = load_dataset("zen-E/StrategyQA_CoT_GPT4o")["train"]
