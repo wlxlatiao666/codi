@@ -14,7 +14,8 @@ python train.py \
     --expt_name gpt2-gsm8k-aug-crossattn \
     --logging_dir "$SAVE_DIR/logs" \
     --logging_steps 10 \
-    --model_name_or_path "/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt-2" \
+    --model_name_or_path "/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt2" \
+    --data_name icot \
     --data_path "/inspire/hdd/global_user/weilongxuan-253108120168/data/GSM8k-Aug" \
     --seed 11 \
     --model_max_length 512 \

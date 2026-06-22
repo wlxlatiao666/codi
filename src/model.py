@@ -649,18 +649,18 @@ class CODI(torch.nn.Module):
             loss = loss + align_loss_total
 
         if self.print_loss:
-            loss_str = f'loss={loss.item()}, ce_loss={ce_loss_total}, distill_loss={distill_loss_total}, ref_ce_loss={ref_ce_loss}'
+            loss_str = f'loss={loss.item()}, ce_loss={ce_loss_total if isinstance(ce_loss_total, float) else ce_loss_total.item()}, distill_loss={distill_loss_total if isinstance(distill_loss_total, float) else distill_loss_total.item()}, ref_ce_loss={ref_ce_loss if isinstance(ref_ce_loss, float) else ref_ce_loss.item()}'
             if self.use_cross_attn_align:
                 loss_str += f', align_loss={align_loss_total if isinstance(align_loss_total, float) else align_loss_total.item()}, align_weight={align_weight}'
             print(loss_str)
 
-        # Detach for logging
-        if ce_loss_total != 0:
-            ce_loss_total = ce_loss_total.detach().item()
-        if distill_loss_total != 0:
-            distill_loss_total = distill_loss_total.detach().item()
-        if ref_ce_loss != 0:
-            ref_ce_loss = ref_ce_loss.detach().item()
+        # Keep as tensors for DataParallel gather (detach but don't convert to Python float)
+        if ce_loss_total != 0 and not isinstance(ce_loss_total, float):
+            ce_loss_total = ce_loss_total.detach()
+        if distill_loss_total != 0 and not isinstance(distill_loss_total, float):
+            distill_loss_total = distill_loss_total.detach()
+        if ref_ce_loss != 0 and not isinstance(ref_ce_loss, float):
+            ref_ce_loss = ref_ce_loss.detach()
 
         return_dict = {
             "loss": loss,
@@ -671,7 +671,11 @@ class CODI(torch.nn.Module):
         }
 
         if self.use_cross_attn_align:
-            return_dict["align_loss"] = align_loss_total.detach().item() if not isinstance(align_loss_total, float) else align_loss_total
-            return_dict["align_weight"] = align_weight
+            if not isinstance(align_loss_total, float):
+                return_dict["align_loss"] = align_loss_total.detach()
+            else:
+                return_dict["align_loss"] = align_loss_total
+            # Convert align_weight to a tensor for DataParallel
+            return_dict["align_weight"] = torch.tensor(align_weight, device=loss.device, dtype=loss.dtype)
 
         return return_dict
