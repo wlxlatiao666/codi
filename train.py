@@ -15,7 +15,7 @@ from safetensors.torch import load_file
 from tqdm import tqdm
 from math import ceil
 from peft import PeftModel, LoraConfig, TaskType, get_peft_model
-from datasets import load_dataset
+from datasets import load_dataset, load_from_disk
 from functools import partial
 
 from src.model import (
@@ -413,14 +413,31 @@ def train():
 
             return output_dict
 
+    def try_load_local(data_path):
+        """Try loading dataset from local path; return None if not set or failed."""
+        if data_path is not None:
+            try:
+                logging.warning(f"Loading dataset from local path: {data_path}")
+                dataset = load_from_disk(data_path)
+                # Handle both Dataset and DatasetDict (with 'train' split)
+                if hasattr(dataset, 'keys') and 'train' in dataset:
+                    dataset = dataset['train']
+                return dataset
+            except Exception as e:
+                logging.warning(f"Failed to load from local path {data_path}: {e}")
+                logging.warning("Falling back to Hugging Face Hub.")
+        return None
+
     def make_supervised_data_module(tokenizer, data_args) -> Dict:
         """Make dataset and collator for supervised fine-tuning."""
         logging.warning("Downloading Data")
         if "icot" in data_args.data_name:
-            if 'full' in data_args.data_name:
-                dataset = load_dataset("zen-E/GSM8k-Aug-NL")["train"]
-            else:
-                dataset = load_dataset("zen-E/GSM8k-Aug")["train"]
+            dataset = try_load_local(data_args.data_path)
+            if dataset is None:
+                if 'full' in data_args.data_name:
+                    dataset = load_dataset("zen-E/GSM8k-Aug-NL")["train"]
+                else:
+                    dataset = load_dataset("zen-E/GSM8k-Aug")["train"]
             train_dataset = SupervisedDataset(
                 data_name=data_args.data_name,
                 raw_data=dataset,
@@ -435,17 +452,22 @@ def train():
             )
             return dict(train_dataset=train_dataset, eval_dataset=None, data_collator=data_collator)
         elif "strategy" in data_args.data_name:
-            dataset = load_dataset("zen-E/StrategyQA_CoT_GPT4o")["train"]
+            dataset = try_load_local(data_args.data_path)
+            if dataset is None:
+                dataset = load_dataset("zen-E/StrategyQA_CoT_GPT4o")["train"]
             train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=dataset, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
             data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
             return dict(train_dataset=train_dataset, eval_dataset=None, data_collator=data_collator)
         elif "commonsense" in data_args.data_name:
-            dataset = load_dataset("zen-E/CommonsenseQA-GPT4omini")["train"]
+            dataset = try_load_local(data_args.data_path)
+            if dataset is None:
+                dataset = load_dataset("zen-E/CommonsenseQA-GPT4omini")["train"]
             train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=dataset, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
             data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
             return dict(train_dataset=train_dataset, eval_dataset=None, data_collator=data_collator)
         elif "prontoqa" in data_args.data_name:
-            with open("/home/ubuntu/coconut/data/prontoqa_train.json") as f:
+            local_path = data_args.data_path if data_args.data_path is not None else "/home/ubuntu/coconut/data/prontoqa_train.json"
+            with open(local_path) as f:
                 dataset = json.load(f)
             train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=dataset, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
             data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)

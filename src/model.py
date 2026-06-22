@@ -58,6 +58,9 @@ class DataArguments:
     data_name: str = field(
         default=None, metadata={"help": "Path to the training data."}
     )
+    data_path: Optional[str] = field(
+        default=None, metadata={"help": "Local path to load dataset from. If set and valid, will override Hugging Face Hub loading."}
+    )
     debug_data: bool = field(
         default=False,
         metadata={

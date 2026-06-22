@@ -11,14 +11,14 @@ cp "$0" "$SAVE_DIR"
 
 python train.py \
     --output_dir "$SAVE_DIR" \
-    --expt_name "gpt2_cross_attn" \
+    --expt_name gpt2_cross_attn \
     --logging_dir "$SAVE_DIR/logs" \
     --logging_steps 10 \
-    --model_name_or_path "gpt2" \
-    --data_name "icot" \
+    --model_name_or_path gpt2 \
+    --data_name icot \
     --seed 42 \
     --model_max_length 512 \
-    --per_device_train_batch_size 32 \
+    --per_device_train_batch_size 64 \
     --gradient_accumulation_steps 2 \
     --bf16 \
     --num_train_epochs 40 \
