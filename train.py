@@ -55,14 +55,14 @@ class CustomTrainer(Trainer):
         if step % self.args.logging_steps == 0:
             log_dict = {
                 "loss": loss.item(),
-                "ce_loss": outputs["ce_loss"],
-                "distill_loss": outputs["distill_loss"],
-                "ref_ce_loss": outputs["ref_ce_loss"],
+                "ce_loss": outputs["ce_loss"].item() if torch.is_tensor(outputs["ce_loss"]) else outputs["ce_loss"],
+                "distill_loss": outputs["distill_loss"].item() if torch.is_tensor(outputs["distill_loss"]) else outputs["distill_loss"],
+                "ref_ce_loss": outputs["ref_ce_loss"].item() if torch.is_tensor(outputs["ref_ce_loss"]) else outputs["ref_ce_loss"],
             }
             if "align_loss" in outputs:
-                log_dict["align_loss"] = outputs["align_loss"]
+                log_dict["align_loss"] = outputs["align_loss"].item() if torch.is_tensor(outputs["align_loss"]) else outputs["align_loss"]
             if "align_weight" in outputs:
-                log_dict["align_weight"] = outputs["align_weight"]
+                log_dict["align_weight"] = outputs["align_weight"].item() if torch.is_tensor(outputs["align_weight"]) else outputs["align_weight"]
             self.log(log_dict)
         return loss
 
