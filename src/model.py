@@ -342,6 +342,8 @@ class CODI(torch.nn.Module):
             )
             if not self.prj_no_ln:
                 self.prj.add_module("ln", nn.LayerNorm(self.dim))
+            # Convert to same dtype as main model
+            self.prj.to(dtype=(torch.float16 if training_args.bf16 is False else torch.bfloat16))
 
         # ===== Cross-Attention 软对齐模块 =====
         self.use_cross_attn_align = training_args.use_cross_attn_align
@@ -356,6 +358,8 @@ class CODI(torch.nn.Module):
             self.align_loss_warmup_steps = training_args.align_loss_warmup_steps
             self.align_loss_peak_steps = training_args.align_loss_peak_steps
             self.align_loss_decay_start = training_args.align_loss_decay_start
+            # Convert to same dtype as main model
+            self.cross_attn_aligner.to(dtype=(torch.float16 if training_args.bf16 is False else torch.bfloat16))
             # 软对齐损失函数 (L2)
             self.align_loss_fct = nn.MSELoss()
 
