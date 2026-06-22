@@ -2,20 +2,20 @@
 # CODI with Cross-Attention Soft Alignment Training Script
 # 使用 Cross-Attention 软对齐的 CODI 训练脚本
 
-SAVE_DIR="./outputs/codi_gpt2_cross_attn"
+SAVE_DIR=/inspire/qb-ilm2/project/neosmosis/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug/crossattn
 
 mkdir -p "$SAVE_DIR"
 
 # 复制当前脚本到输出目录以便复现
-cp "$0" "$SAVE_DIR"
+# cp "$0" "$SAVE_DIR"
 
 python train.py \
     --output_dir "$SAVE_DIR" \
-    --expt_name gpt2_cross_attn \
+    --expt_name gpt2-gsm8k-aug-crossattn \
     --logging_dir "$SAVE_DIR/logs" \
     --logging_steps 10 \
-    --model_name_or_path gpt2 \
-    --data_name icot \
+    --model_name_or_path "/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt-2" \
+    --data_path "/inspire/hdd/global_user/weilongxuan-253108120168/data/GSM8k-Aug" \
     --seed 42 \
     --model_max_length 512 \
     --per_device_train_batch_size 64 \
