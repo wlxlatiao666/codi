@@ -16,7 +16,7 @@ python train.py \
     --logging_steps 10 \
     --model_name_or_path "/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt-2" \
     --data_path "/inspire/hdd/global_user/weilongxuan-253108120168/data/GSM8k-Aug" \
-    --seed 42 \
+    --seed 11 \
     --model_max_length 512 \
     --per_device_train_batch_size 64 \
     --gradient_accumulation_steps 2 \
