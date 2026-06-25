@@ -1,7 +1,7 @@
 python test.py \
 	--data_name "gsm8k" \
 	--output_dir "$SAVE_DIR" \
-	--model_name_or_path "/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt-2" \
+	--model_name_or_path "/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt2" \
 	--seed 11 \
 	--model_max_length 512 \
 	--bf16 \
