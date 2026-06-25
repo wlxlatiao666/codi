@@ -26,7 +26,7 @@ import json
 
 from peft import PeftModel, LoraConfig, TaskType, get_peft_model
 from peft import PeftModel
-from datasets import load_dataset, concatenate_datasets
+from datasets import load_dataset, concatenate_datasets, load_from_disk
 from accelerate.utils import set_seed
 from safetensors.torch import load_file
 
@@ -99,6 +99,18 @@ def evaluation(model_args, data_args, training_args):
     model = model.to('cuda')
     model.to(torch.bfloat16)
 
+    def try_load_local(data_path):
+        """Try loading dataset from local path; return None if not set or failed."""
+        if data_path is not None:
+            try:
+                logging.warning(f"Loading dataset from local path: {data_path}")
+                dataset = load_from_disk(data_path)
+                return dataset
+            except Exception as e:
+                logging.warning(f"Failed to load from local path {data_path}: {e}")
+                logging.warning("Falling back to Hugging Face Hub.")
+        return None
+
     ######################
     #      dataset       #
     ######################
@@ -106,25 +118,52 @@ def evaluation(model_args, data_args, training_args):
     question_name = "question"
     answer_name = "answer"
     if "gsm-hard" == data_args.data_name:
-        dataset = load_dataset("juyoung-trl/gsm-hard")
-        test_set = dataset['train']
+        dataset = try_load_local(data_args.data_path)
+        if dataset is None:
+            dataset = load_dataset("juyoung-trl/gsm-hard")
+        if hasattr(dataset, 'keys') and 'train' in dataset:
+            test_set = dataset['train']
+        else:
+            test_set = dataset
         question_name = "instruction"
         answer_name = "response"
     elif "multi-arith" == data_args.data_name:
-        dataset = load_dataset("ChilleD/MultiArith")
-        test_set = dataset['test']
+        dataset = try_load_local(data_args.data_path)
+        if dataset is None:
+            dataset = load_dataset("ChilleD/MultiArith")
+        if hasattr(dataset, 'keys') and 'test' in dataset:
+            test_set = dataset['test']
+        else:
+            test_set = dataset
         answer_name = "final_ans"
     elif "svamp" == data_args.data_name:
-        dataset = load_dataset("ChilleD/SVAMP")
-        test_set = concatenate_datasets([dataset["train"], dataset["test"]])
+        dataset = try_load_local(data_args.data_path)
+        if dataset is None:
+            dataset = load_dataset("ChilleD/SVAMP")
+            test_set = concatenate_datasets([dataset["train"], dataset["test"]])
+        else:
+            if hasattr(dataset, 'keys') and 'train' in dataset and 'test' in dataset:
+                test_set = concatenate_datasets([dataset["train"], dataset["test"]])
+            else:
+                test_set = dataset
         question_name = "question_concat"
         answer_name = "Answer"
     elif "commonsense" == data_args.data_name:
-        dataset = load_dataset("zen-E/CommonsenseQA-GPT4omini")
-        test_set = dataset['validation']
+        dataset = try_load_local(data_args.data_path)
+        if dataset is None:
+            dataset = load_dataset("zen-E/CommonsenseQA-GPT4omini")
+        if hasattr(dataset, 'keys') and 'validation' in dataset:
+            test_set = dataset['validation']
+        else:
+            test_set = dataset
     elif "gsm8k" == data_args.data_name:
-        dataset = load_dataset("gsm8k", "main")
-        test_set = dataset['test']
+        dataset = try_load_local(data_args.data_path)
+        if dataset is None:
+            dataset = load_dataset("gsm8k", "main")
+        if hasattr(dataset, 'keys') and 'test' in dataset:
+            test_set = dataset['test']
+        else:
+            test_set = dataset
     else:
         raise NotImplementedError
 
