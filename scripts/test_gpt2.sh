@@ -1,7 +1,7 @@
 python test.py \
 	--data_name "gsm8k" \
 	--output_dir "$SAVE_DIR" \
-	--model_name_or_path gpt2 \
+	--model_name_or_path "/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt-2" \
 	--seed 11 \
 	--model_max_length 512 \
 	--bf16 \
@@ -17,4 +17,4 @@ python test.py \
 	--inf_num_iterations 1 \
 	--remove_eos True \
 	--use_lora True \
-	--ckpt_dir ~/transfer/codi_gpt2
+	--ckpt_dir "/inspire/qb-ilm2/project/neosmosis/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug/codi/gpt2-gsm8k-aug-codi/gpt2/ep_40/lr_0.003/seed_11"
