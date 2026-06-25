@@ -1,4 +1,4 @@
-SAVE_DIR=/inspire/qb-ilm2/project/neosmosis/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug-nl/codi
+SAVE_DIR=/inspire/qb-ilm2/project/neosmosis/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug-nl/crossattn
 
 mkdir -p "$SAVE_DIR"
 
@@ -6,7 +6,7 @@ mkdir -p "$SAVE_DIR"
 
 python train.py \
 	--output_dir "$SAVE_DIR" \
-  	--expt_name gpt2-gsm8k-aug-nl-codi \
+  	--expt_name gpt2-gsm8k-aug-nl-crossattn \
 	--logging_dir "$SAVE_DIR/logs"\
 	--logging_steps 10 \
 	--model_name_or_path "/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt2" \
@@ -40,3 +40,13 @@ python train.py \
 	--exp_data_num 2000 \
 	--remove_eos True \
 	--print_ref_model_stats True \
+	\
+	# ===== Cross-Attention 软对齐参数 =====
+    --use_cross_attn_align True \
+    --cross_attn_rank 64 \
+    --cross_attn_heads 4 \
+    --cross_attn_layer_idx -3 \
+    --align_loss_factor 0.3 \
+    --align_loss_warmup_steps 500 \
+    --align_loss_peak_steps 2000 \
+    --align_loss_decay_start 0.8
