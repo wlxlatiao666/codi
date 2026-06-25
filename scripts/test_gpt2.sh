@@ -1,4 +1,5 @@
 python test.py \
+	--data_path "/inspire/hdd/global_user/weilongxuan-253108120168/data/gsm8k" \
 	--data_name "gsm8k" \
 	--output_dir "$SAVE_DIR" \
 	--model_name_or_path "/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt2" \
@@ -17,4 +18,4 @@ python test.py \
 	--inf_num_iterations 1 \
 	--remove_eos True \
 	--use_lora True \
-	--ckpt_dir "/inspire/qb-ilm2/project/neosmosis/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug/codi/gpt2-gsm8k-aug-codi/gpt2/ep_40/lr_0.003/seed_11"
+	--ckpt_dir "/inspire/qb-ilm2/project/neosmosis/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug/crossattn/gpt2-gsm8k-aug-crossattn/gpt2/ep_40/lr_0.003/seed_11"
