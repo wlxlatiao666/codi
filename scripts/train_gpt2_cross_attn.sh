@@ -15,6 +15,10 @@ python train.py \
     --logging_dir "$SAVE_DIR/logs" \
     --logging_steps 10 \
     --model_name_or_path "/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt2" \
+<<<<<<< HEAD
+=======
+    --data_name icot \
+>>>>>>> 7622be132b46cdf94edf698654d1f1ffbb5cf187
     --data_path "/inspire/hdd/global_user/weilongxuan-253108120168/data/GSM8k-Aug" \
     --seed 11 \
     --model_max_length 512 \
