@@ -626,6 +626,7 @@ class CODI(torch.nn.Module):
                     decay_start=self.align_loss_decay_start,
                     max_weight=self.align_loss_factor
                 )
+                print(f"step={step}, align_weight={align_weight}")
             else:
                 align_weight = self.align_loss_factor
 
