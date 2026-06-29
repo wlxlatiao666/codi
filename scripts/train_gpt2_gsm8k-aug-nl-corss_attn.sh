@@ -40,13 +40,10 @@ python train.py \
 	--exp_data_num 2000 \
 	--remove_eos True \
 	--print_ref_model_stats True \
-	\
-	# ===== Cross-Attention 软对齐参数 =====
     --use_cross_attn_align True \
     --cross_attn_rank 64 \
     --cross_attn_heads 4 \
-    --cross_attn_layer_idx -3 \
+    --cross_attn_layer_idx -1 \
     --align_loss_factor 0.3 \
-    --align_loss_warmup_steps 500 \
-    --align_loss_peak_steps 2000 \
+    --align_loss_warmup_ratio 0.2 \
     --align_loss_decay_start 0.8

@@ -1,17 +1,14 @@
 #!/bin/bash
-# CODI with Cross-Attention Soft Alignment Training Script
-# 使用 Cross-Attention 软对齐的 CODI 训练脚本
+# CODI with Learnable Contrastive Alignment
+# 使用可学习的对比对齐方式
 
-SAVE_DIR=/inspire/qb-ilm2/project/neosmosis/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug/crossattn
+SAVE_DIR=/inspire/qb-ilm2/project/neosmosis/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug/contrastive
 
 mkdir -p "$SAVE_DIR"
 
-# 复制当前脚本到输出目录以便复现
-# cp "$0" "$SAVE_DIR"
-
 python train.py \
     --output_dir "$SAVE_DIR" \
-    --expt_name gpt2-gsm8k-aug-crossattn \
+    --expt_name gpt2-gsm8k-aug-contrastive \
     --logging_dir "$SAVE_DIR/logs" \
     --logging_steps 10 \
     --model_name_or_path "/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt2" \
@@ -48,9 +45,7 @@ python train.py \
     --remove_eos True \
     --print_ref_model_stats True \
     --use_cross_attn_align True \
-    --cross_attn_rank 64 \
-    --cross_attn_heads 4 \
     --cross_attn_layer_idx -1 \
-    --align_loss_factor 0.3 \
-    --align_loss_warmup_ratio 0.2 \
+    --align_loss_factor 0.05 \
+    --align_loss_warmup_ratio 0.1 \
     --align_loss_decay_start 0.8

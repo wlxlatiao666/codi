@@ -125,8 +125,7 @@ class TrainingArguments(transformers.TrainingArguments):
     cross_attn_heads: int = field(default=4, metadata={"help": "Number of attention heads for cross-attention."})
     cross_attn_layer_idx: int = field(default=-3, metadata={"help": "Which layer of student to align (use negative idx, e.g., -3 = 3rd last)."})
     align_loss_factor: float = field(default=0.3, metadata={"help": "Weight for cross-attention soft alignment loss (lambda_a)."})
-    align_loss_warmup_steps: int = field(default=500, metadata={"help": "Warmup steps for alignment loss."})
-    align_loss_peak_steps: int = field(default=2000, metadata={"help": "Peak steps for alignment loss."})
+    align_loss_warmup_ratio: float = field(default=0.2, metadata={"help": "Warmup ratio for alignment loss (e.g., 0.1 = first 10% steps)."})
     align_loss_decay_start: float = field(default=0.8, metadata={"help": "Start decay at this ratio of total steps."})
 
 def print_trainable_parameters(model):
@@ -149,127 +148,155 @@ def freeze_model(model):
         param.requires_grad = False
 
 
-class CrossAttentionAligner(nn.Module):
+class LearnableContrastiveAligner(nn.Module):
     """
-    轻量 Cross-Attention 软对齐模块（仅训练时使用）
-
-    Query: Student latent embedding
-    Key/Value: Teacher CoT hidden states
-
-    结构: 低秩投影 + 多头注意力，无 FFN，无残差
+    可学习的对比对齐模块：
+        - 让student latent自动学习该attend to teacher CoT的哪些位置
+        - 使用对比学习而非强制MSE
     """
-    def __init__(self, dim: int, rank: int = 64, num_heads: int = 4):
+    def __init__(self, dim: int, num_latent: int, temperature: float = 0.1):
         super().__init__()
         self.dim = dim
-        self.rank = rank
-        self.num_heads = num_heads
-        self.head_dim = rank // num_heads
-        assert self.head_dim * num_heads == rank, f"rank {rank} must be divisible by num_heads {num_heads}"
+        self.num_latent = num_latent
 
-        # 低秩投影: W_Q = U_Q V_Q, 同理 W_K, W_V
-        # Query 投影 (from student latent)
-        self.u_q = nn.Linear(dim, rank, bias=False)
-        self.v_q = nn.Linear(rank, rank, bias=False)
+        # 可学习的温度参数
+        self.temperature = nn.Parameter(torch.tensor(temperature))
 
-        # Key/Value 投影 (from teacher CoT)
-        self.u_k = nn.Linear(dim, rank, bias=False)
-        self.v_k = nn.Linear(rank, rank, bias=False)
+        # 投影层：把student和teacher投影到同一个对比空间
+        self.student_proj = nn.Sequential(
+            nn.Linear(dim, dim),
+            nn.LayerNorm(dim),
+            nn.GELU(),
+            nn.Linear(dim, dim),
+        )
+        self.teacher_proj = nn.Sequential(
+            nn.Linear(dim, dim),
+            nn.LayerNorm(dim),
+            nn.GELU(),
+            nn.Linear(dim, dim),
+        )
 
-        self.u_v = nn.Linear(dim, rank, bias=False)
-        self.v_v = nn.Linear(rank, rank, bias=False)
-
-        # Output 投影
-        self.u_o = nn.Linear(rank, dim, bias=False)
-        self.v_o = nn.Linear(dim, dim, bias=False)
-
-        self.scale = self.head_dim ** -0.5
-
-    def _split_heads(self, x: torch.Tensor) -> torch.Tensor:
-        # x: [batch, seq_len, rank]
-        batch_size = x.shape[0]
-        return x.view(batch_size, -1, self.num_heads, self.head_dim).transpose(1, 2)
-        # return: [batch, num_heads, seq_len, head_dim]
+        # 注意力投影层（用于计算student对teacher的attention）
+        self.attn_query = nn.Linear(dim, dim)
+        self.attn_key = nn.Linear(dim, dim)
 
     def forward(
         self,
-        query: torch.Tensor,
-        key_value: torch.Tensor,
-        key_value_mask: Optional[torch.Tensor] = None
+        student_latents: torch.Tensor,
+        teacher_cot_hiddens: torch.Tensor,
+        teacher_cot_mask: Optional[torch.Tensor] = None,
     ):
         """
         Args:
-            query: [batch, num_latent, dim] - Student latent embeddings (z_i)
-            key_value: [batch, cot_len, dim] - Teacher CoT hidden states (h^T_t)
-            key_value_mask: [batch, cot_len] - True = valid position, False = padding
+            student_latents: [batch, num_latent, dim] - Student latent hiddens
+            teacher_cot_hiddens: [batch, cot_len, dim] - Teacher CoT hiddens
+            teacher_cot_mask: [batch, cot_len] - True = valid position
 
         Returns:
-            aligned: [batch, num_latent, dim] - 对齐后的 Teacher 表示 (\tilde{h}^T_i)
-            attn_weights: [batch, num_heads, num_latent, cot_len] - 注意力权重
+            loss: 对比损失
+            attn_weights: attention权重 [batch, num_latent, cot_len]
         """
-        batch_size = query.shape[0]
+        batch_size = student_latents.shape[0]
+        num_latent = student_latents.shape[1]
 
-        # 低秩投影
-        q = self.v_q(self.u_q(query))  # [batch, num_latent, rank]
-        k = self.v_k(self.u_k(key_value))  # [batch, cot_len, rank]
-        v = self.v_v(self.u_v(key_value))  # [batch, cot_len, rank]
+        # ========== 1. 投影到对比空间 ==========
+        student_proj = self.student_proj(student_latents)  # [batch, num_latent, dim]
+        teacher_proj = self.teacher_proj(teacher_cot_hiddens)  # [batch, cot_len, dim]
 
-        # 分头
-        q = self._split_heads(q)  # [batch, num_heads, num_latent, head_dim]
-        k = self._split_heads(k)  # [batch, num_heads, cot_len, head_dim]
-        v = self._split_heads(v)  # [batch, num_heads, cot_len, head_dim]
+        # ========== 2. 计算attention权重 ==========
+        # 用student作为query，teacher作为key
+        q = self.attn_query(student_proj)  # [batch, num_latent, dim]
+        k = self.attn_key(teacher_proj)  # [batch, cot_len, dim]
 
-        # 注意力计算
-        attn_weights = torch.matmul(q, k.transpose(-1, -2)) * self.scale
-        # [batch, num_heads, num_latent, cot_len]
+        # 计算attention分数
+        attn_scores = torch.matmul(q, k.transpose(-1, -2)) / (self.dim ** 0.5)
+        # [batch, num_latent, cot_len]
 
-        # mask (如果有 padding)
-        if key_value_mask is not None:
-            mask = key_value_mask.unsqueeze(1).unsqueeze(2)  # [batch, 1, 1, cot_len]
-            attn_weights = attn_weights.masked_fill(~mask, torch.finfo(attn_weights.dtype).min)
+        # mask padding
+        if teacher_cot_mask is not None:
+            mask = teacher_cot_mask.unsqueeze(1)  # [batch, 1, cot_len]
+            attn_scores = attn_scores.masked_fill(~mask, -1e9)
 
-        attn_weights = torch.softmax(attn_weights, dim=-1)
+        attn_weights = torch.softmax(attn_scores, dim=-1)  # [batch, num_latent, cot_len]
 
-        # 聚合 Value
-        aligned = torch.matmul(attn_weights, v)  # [batch, num_heads, num_latent, head_dim]
+        # ========== 3. 得到对齐后的teacher表示 ==========
+        aligned_teacher = torch.matmul(attn_weights, teacher_proj)
+        # [batch, num_latent, dim]
 
-        # 合并头
-        aligned = aligned.transpose(1, 2).contiguous().view(batch_size, -1, self.rank)
-        # [batch, num_latent, rank]
+        # ========== 4. 计算对比损失 ==========
+        # 归一化特征
+        student_normalized = F.normalize(student_proj, dim=-1)
+        aligned_normalized = F.normalize(aligned_teacher, dim=-1)
 
-        # 输出投影
-        aligned = self.v_o(self.u_o(aligned))  # [batch, num_latent, dim]
+        # --- 正例相似度：(student_i, aligned_teacher_i)
+        pos_sims = (student_normalized * aligned_normalized).sum(dim=-1)
+        # [batch, num_latent]
 
-        return aligned, attn_weights
+        # --- 负例相似度：
+        # 负例1: student_i 和其他位置的aligned_teacher_j (j != i)
+        # 计算所有pair的相似度
+        all_sim = torch.matmul(student_normalized, aligned_normalized.transpose(-1, -2))
+        # [batch, num_latent, num_latent]
+
+        # 去掉对角线（正例）
+        mask = ~torch.eye(num_latent, dtype=torch.bool, device=all_sim.device)
+        mask = mask.unsqueeze(0).expand(batch_size, -1, -1)
+        neg_sims_cross = all_sim.masked_select(mask).view(batch_size, num_latent, num_latent - 1)
+
+        # 负例2: student_i 和teacher的其他位置
+        # 重新计算student对teacher各个位置的相似度
+        teacher_normalized = F.normalize(teacher_proj, dim=-1)
+        teacher_sim = torch.matmul(student_normalized, teacher_normalized.transpose(-1, -2))
+        # [batch, num_latent, cot_len]
+
+        # 采样一些低attention的位置作为负例
+        num_neg_teacher = min(4, teacher_sim.shape[-1] - 1)
+        if num_neg_teacher > 0:
+            _, neg_indices = torch.topk(-attn_weights, k=num_neg_teacher, dim=-1)
+            neg_sims_teacher = teacher_sim.gather(-1, neg_indices)
+            # 合并两类负例
+            neg_sims = torch.cat([neg_sims_cross, neg_sims_teacher], dim=-1)
+        else:
+            neg_sims = neg_sims_cross
+
+        # --- InfoNCE loss
+        exp_pos = torch.exp(pos_sims / self.temperature)
+        exp_neg = torch.exp(neg_sims / self.temperature).sum(dim=-1)
+
+        loss = -torch.log(exp_pos / (exp_pos + exp_neg + 1e-9)).mean()
+
+        # ========== 5. 稀疏性损失：让attention更集中 ==========
+        # 计算attention的熵，鼓励更sharp的分布
+        entropy = -(attn_weights * torch.log(attn_weights + 1e-9)).sum(dim=-1)
+        sparsity_loss = entropy.mean()
+
+        total_loss = loss + 0.01 * sparsity_loss
+
+        return total_loss, attn_weights
 
 
 def get_align_loss_weight(
-    step: int,
     step_ratio: float,
-    warmup_steps: int,
-    peak_steps: int,
+    warmup_ratio: float,
     decay_start: float,
     max_weight: float
 ) -> float:
     """
     计算对齐损失的权重调度: warmup -> peak -> decay to 0
+    完全基于训练进度比例 (0 ~ 1)
 
     Args:
-        step: 当前训练步数
         step_ratio: 当前训练进度 (0 ~ 1)
-        warmup_steps: warmup 步数
-        peak_steps: 达到峰值的步数
+        warmup_ratio: warmup 结束的比例 (e.g., 0.1 = first 10% steps)
         decay_start: 开始 decay 的训练进度比例 (0 ~ 1)
         max_weight: 最大权重
 
     Returns:
         weight: 当前步的权重
     """
-    if step < warmup_steps:
+    if step_ratio < warmup_ratio:
         # Warmup: 从 0 线性增加
-        return max_weight * (step / warmup_steps)
-    elif step < peak_steps:
-        # Ramp to peak
-        return max_weight
+        return max_weight * (step_ratio / warmup_ratio)
     elif step_ratio < decay_start:
         # 保持峰值
         return max_weight
@@ -345,23 +372,20 @@ class CODI(torch.nn.Module):
             # Convert to same dtype as main model
             self.prj.to(dtype=(torch.float16 if training_args.bf16 is False else torch.bfloat16))
 
-        # ===== Cross-Attention 软对齐模块 =====
+        # ===== Learnable Contrastive 对齐模块 =====
         self.use_cross_attn_align = training_args.use_cross_attn_align
         if self.use_cross_attn_align:
-            self.cross_attn_aligner = CrossAttentionAligner(
+            self.contrastive_aligner = LearnableContrastiveAligner(
                 dim=self.dim,
-                rank=training_args.cross_attn_rank,
-                num_heads=training_args.cross_attn_heads
+                num_latent=self.num_latent,
+                temperature=0.1
             )
             self.cross_attn_layer_idx = training_args.cross_attn_layer_idx
             self.align_loss_factor = training_args.align_loss_factor
-            self.align_loss_warmup_steps = training_args.align_loss_warmup_steps
-            self.align_loss_peak_steps = training_args.align_loss_peak_steps
+            self.align_loss_warmup_ratio = training_args.align_loss_warmup_ratio
             self.align_loss_decay_start = training_args.align_loss_decay_start
             # Convert to same dtype as main model
-            self.cross_attn_aligner.to(dtype=(torch.float16 if training_args.bf16 is False else torch.bfloat16))
-            # 软对齐损失函数 (L2)
-            self.align_loss_fct = nn.MSELoss()
+            self.contrastive_aligner.to(dtype=(torch.float16 if training_args.bf16 is False else torch.bfloat16))
 
         # Losses
         self.print_loss = training_args.print_loss
@@ -567,10 +591,9 @@ class CODI(torch.nn.Module):
                         ce_loss = self.loss_fct(effective_logits, target_ids)
                         ce_loss_total += ce_loss
 
-        # ===== Cross-Attention 软对齐损失 =====
-        if self.use_cross_attn_align and ref_cot_start is not None and len(student_latent_inputs) > 0:
-            # 1. 准备 Student 侧
-            student_queries = torch.stack(student_latent_inputs, dim=1)  # [batch, num_latent, dim]
+        # ===== Learnable Contrastive 对齐损失 =====
+        if self.use_cross_attn_align and ref_cot_start is not None and len(student_latent_hiddens) > 0:
+            # 1. 准备 Student 侧：使用经过transformer后的hidden states
             student_hiddens = torch.stack(student_latent_hiddens, dim=1)  # [batch, num_latent, dim]
 
             # 2. 准备 Teacher CoT 侧: 提取 CoT 区间的隐状态
@@ -578,14 +601,15 @@ class CODI(torch.nn.Module):
             teacher_cot_hiddens = []
             teacher_cot_mask = []
 
-            ref_last_hidden = ref_outputs.hidden_states[-1]  # [batch, seq_len, dim]
+            # 使用teacher的hidden states（用与student相同的层，或者最后一层）
+            ref_hidden = ref_outputs.hidden_states[self.cross_attn_layer_idx]  # [batch, seq_len, dim]
 
             for b in range(batch_size):
                 cot_start = ref_cot_start[b].item()
                 cot_end = ref_cot_end[b].item() if ref_cot_end is not None else ref_answer_position[b].item()
 
                 # 提取 CoT 区间的隐状态
-                cot_hidden = ref_last_hidden[b, cot_start:cot_end, :]  # [cot_len, dim]
+                cot_hidden = ref_hidden[b, cot_start:cot_end, :]  # [cot_len, dim]
                 cot_len = cot_hidden.shape[0]
 
                 teacher_cot_hiddens.append(cot_hidden)
@@ -606,29 +630,24 @@ class CODI(torch.nn.Module):
             teacher_cot_hiddens = torch.stack(padded_teacher_hiddens, dim=0)  # [batch, max_cot_len, dim]
             teacher_cot_mask = torch.stack(padded_teacher_mask, dim=0)  # [batch, max_cot_len]
 
-            # 3. Cross-Attention 对齐
-            aligned_teacher_repr, attn_weights = self.cross_attn_aligner(
-                query=student_queries,
-                key_value=teacher_cot_hiddens.detach(),
-                key_value_mask=teacher_cot_mask
+            # 3. Learnable Contrastive 对齐
+            align_loss, attn_weights = self.contrastive_aligner(
+                student_latents=student_hiddens,
+                teacher_cot_hiddens=teacher_cot_hiddens.detach(),
+                teacher_cot_mask=teacher_cot_mask
             )
 
-            # 4. 计算软对齐损失
-            align_loss = self.align_loss_fct(student_hiddens, aligned_teacher_repr.detach())
-
-            # 5. 权重调度
-            if step is not None and step_ratio is not None:
+            # 4. 权重调度
+            if step_ratio is not None:
                 align_weight = get_align_loss_weight(
-                    step=step,
                     step_ratio=step_ratio,
-                    warmup_steps=self.align_loss_warmup_steps,
-                    peak_steps=self.align_loss_peak_steps,
+                    warmup_ratio=self.align_loss_warmup_ratio,
                     decay_start=self.align_loss_decay_start,
                     max_weight=self.align_loss_factor
                 )
-                print(f"step={step}, align_weight={align_weight}")
             else:
                 align_weight = self.align_loss_factor
+            print(f"step={step}, align_weight={align_weight}")
 
             align_loss_total = align_loss * align_weight
 
