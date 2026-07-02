@@ -1,7 +1,7 @@
 #!/bin/bash
 # Evaluate the same CODI checkpoint on SVAMP, gsm-hard, and MultiArith sequentially.
 
-CKPT_DIR="/inspire/qb-ilm2/project/neosmosis/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug/crossattn/gpt2-gsm8k-aug-crossattn/gpt2/ep_40/lr_0.003/seed_11"
+CKPT_DIR="/inspire/qb-ilm2/project/neosmosis/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug/lca/gpt2-gsm8k-aug-contrastive/gpt2/ep_40/lr_0.003/seed_11"
 MODEL_PATH="/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt2"
 
 # Common arguments shared across all datasets
