@@ -159,8 +159,8 @@ class LearnableContrastiveAligner(nn.Module):
         self.dim = dim
         self.num_latent = num_latent
 
-        # 可学习的温度参数
-        self.temperature = nn.Parameter(torch.tensor(temperature))
+        # 固定温度参数（防止数值不稳定）
+        self.temperature = temperature
 
         # 投影层：把student和teacher投影到同一个对比空间
         self.student_proj = nn.Sequential(

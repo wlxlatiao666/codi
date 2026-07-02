@@ -70,14 +70,34 @@ def evaluation(model_args, data_args, training_args):
     model = CODI(model_args, training_args, lora_config)
     #if "llama" in model_args.model_name_or_path:
     #    model.codi.resize_token_embeddings(128261)
+
+    print(f"\n[DEBUG] Loading checkpoint from: {model_args.ckpt_dir}")
     try:
+        print(f"[DEBUG] Trying to load model.safetensors...")
         state_dict = load_file(os.path.join(model_args.ckpt_dir, "model.safetensors"))
-    except Exception:
+        print(f"[DEBUG] Loaded safetensors with {len(state_dict)} keys")
+    except Exception as e:
+        print(f"[DEBUG] Failed to load safetensors: {e}")
+        print(f"[DEBUG] Trying to load pytorch_model.bin...")
         state_dict = torch.load(os.path.join(model_args.ckpt_dir, "pytorch_model.bin"))
-    
+        print(f"[DEBUG] Loaded bin with {len(state_dict)} keys")
+
+    # 打印 state_dict 的前几个 key 供参考
+    print(f"\n[DEBUG] Checkpoint keys sample (first 10):")
+    for i, k in enumerate(list(state_dict.keys())[:10]):
+        v = state_dict[k]
+        print(f"  [{i}] {k}: shape={v.shape if hasattr(v, 'shape') else type(v)}, dtype={v.dtype if hasattr(v, 'dtype') else 'N/A'}")
+
     # new_state_dict = { k.replace("coconut", "codi"): v for k, v in state_dict.items() }
     # torch.save(new_state_dict, "/scratch/prj/inf_multimodal_qa/scratch_tmp/transfer/pytorch_model.bin")
-    model.load_state_dict(state_dict, strict=False)
+    print(f"\n[DEBUG] Loading state_dict into model with strict=False...")
+    load_result = model.load_state_dict(state_dict, strict=False)
+    print(f"[DEBUG] Missing keys: {len(load_result.missing_keys)}")
+    if load_result.missing_keys:
+        print(f"  {load_result.missing_keys[:10]}")  # 只打印前10个
+    print(f"[DEBUG] Unexpected keys: {len(load_result.unexpected_keys)}")
+    if load_result.unexpected_keys:
+        print(f"  {load_result.unexpected_keys[:10]}")  # 只打印前10个
     model.codi.tie_weights()
     
     tokenizer_path = model_args.model_name_or_path 
@@ -246,9 +266,22 @@ def evaluation(model_args, data_args, training_args):
     len_cot = []
     model.eval()
     attn_to_latent_list = []
-    
+
+    print("\n" + "="*80)
+    print("[DEBUG] Starting inference...")
+    print(f"[DEBUG] use_prj: {training_args.use_prj}")
+    print(f"[DEBUG] num_latent: {training_args.num_latent}")
+    print(f"[DEBUG] inf_latent_iterations: {training_args.inf_latent_iterations}")
+    print(f"[DEBUG] remove_eos: {training_args.remove_eos}")
+    print(f"[DEBUG] Model device: {next(model.parameters()).device}")
+    print(f"[DEBUG] Model dtype: {next(model.parameters()).dtype}")
+    print("="*80 + "\n")
+
     for step, batch in enumerate(question_data):
         batch_size = batch["input_ids"].size(0)
+        print(f"\n[DEBUG] ===== Batch {step}, Batch size: {batch_size} =====")
+        print(f"[DEBUG] Input ids shape: {batch['input_ids'].shape}")
+
         with torch.no_grad():
             # encode the question
             past_key_values = None
@@ -256,31 +289,49 @@ def evaluation(model_args, data_args, training_args):
             past_key_values = outputs.past_key_values
             latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
 
+            print(f"[DEBUG] After question encoding:")
+            print(f"  [DEBUG] Hidden states num layers: {len(outputs.hidden_states)}")
+            print(f"  [DEBUG] latent_embd - mean: {latent_embd.mean().item():.6f}, std: {latent_embd.std().item():.6f}")
+            print(f"  [DEBUG] latent_embd - has_nan: {torch.isnan(latent_embd).any().item()}, has_inf: {torch.isinf(latent_embd).any().item()}")
+
             if training_args.use_prj:
+                print(f"  [DEBUG] Applying projection layer...")
                 latent_embd = model.prj(latent_embd)
-            
+                print(f"  [DEBUG] After prj - mean: {latent_embd.mean().item():.6f}, std: {latent_embd.std().item():.6f}")
+
             inf_latent_iterations = training_args.inf_latent_iterations
             for i in range(inf_latent_iterations):
                 # decode the latent embeddings
                 outputs = model.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
                 past_key_values = outputs.past_key_values
                 latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
-                
+
+                print(f"[DEBUG] Latent step {i+1}/{inf_latent_iterations}:")
+                print(f"  [DEBUG] latent_embd - mean: {latent_embd.mean().item():.6f}, std: {latent_embd.std().item():.6f}")
+                print(f"  [DEBUG] latent_embd - has_nan: {torch.isnan(latent_embd).any().item()}, has_inf: {torch.isinf(latent_embd).any().item()}")
+
                 if training_args.use_prj:
                     latent_embd = model.prj(latent_embd)
+                    print(f"  [DEBUG] After prj - mean: {latent_embd.mean().item():.6f}, std: {latent_embd.std().item():.6f}")
 
+            print(f"\n[DEBUG] Preparing EOT embedding...")
             if training_args.remove_eos:
+                print(f"[DEBUG] Using remove_eos=True, eot_id: {model.eot_id}")
                 eot_emb = model.get_embd(model.codi, model.model_name)(torch.tensor([model.eot_id], dtype=torch.long, device='cuda')).unsqueeze(0).to(device)
             else:
+                print(f"[DEBUG] Using remove_eos=False, eot_id: {model.eot_id}, eos_token_id: {tokenizer.eos_token_id}")
                 eot_emb = model.get_embd(model.codi, model.model_name)(torch.tensor([model.eot_id, tokenizer.eos_token_id], dtype=torch.long, device='cuda')).unsqueeze(0).to(device)
-            
+
             eot_emb = eot_emb.expand(batch["input_ids"].size(0), -1, -1)
+            print(f"[DEBUG] eot_emb shape: {eot_emb.shape}, mean: {eot_emb.mean().item():.6f}")
 
             output = eot_emb
-            
+
             seq_len = 0
             finished = torch.zeros(batch_size, dtype=torch.bool, device="cuda")  # Track EOS for each sequence
             pred_tokens = [[] for _ in range(batch_size)]
+
+            print(f"\n[DEBUG] Starting generation, max_new_tokens: {gen_kwargs['max_new_tokens']}")
             for i in range(gen_kwargs["max_new_tokens"]):
                 seq_len += 1
 
@@ -294,6 +345,13 @@ def evaluation(model_args, data_args, training_args):
                     )
                 past_key_values = out.past_key_values
                 logits = out.logits[:, -1, :model.codi.config.vocab_size-1]
+
+                # 每隔一定步数或前几步打印 debug 信息
+                debug_print_interval = 20
+                if i < 5 or i % debug_print_interval == 0:
+                    print(f"  [DEBUG] Gen step {i}: logits - mean: {logits.mean().item():.6f}, std: {logits.std().item():.6f}")
+                    print(f"    [DEBUG] logits - min: {logits.min().item():.6f}, max: {logits.max().item():.6f}")
+                    print(f"    [DEBUG] logits - has_nan: {torch.isnan(logits).any().item()}, has_inf: {torch.isinf(logits).any().item()}")
 
                 # implement the sampling process
                 if training_args.greedy:
@@ -320,6 +378,13 @@ def evaluation(model_args, data_args, training_args):
                     probs = F.softmax(logits, dim=-1)
                     next_token_ids = torch.multinomial(probs, num_samples=1).squeeze(-1)
 
+                # 打印前几个 token
+                if i < 10 or i % debug_print_interval == 0:
+                    for b in range(min(batch_size, 2)):  # 只打印前2个样本
+                        token_id = next_token_ids[b].item()
+                        token_str = tokenizer.decode(token_id)
+                        print(f"    [DEBUG] Sample {b}, step {i}: token_id={token_id}, token='{repr(token_str)}'")
+
                 # Handle EOS for each sequence
                 for b in range(batch_size):
                     if not finished[b]:
@@ -329,6 +394,7 @@ def evaluation(model_args, data_args, training_args):
 
                 # Break if all sequences have finished
                 if finished.all():
+                    print(f"  [DEBUG] All sequences finished at step {i}")
                     break
 
                 #output = model.codi.get_base_model().transformer.wte(next_token_ids).unsqueeze(1).to(device)
