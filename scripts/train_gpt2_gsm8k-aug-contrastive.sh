@@ -2,7 +2,7 @@
 # CODI with Learnable Contrastive Alignment
 # 使用可学习的对比对齐方式
 
-SAVE_DIR=/inspire/qb-ilm2/project/neosmosis/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug/contrastive
+SAVE_DIR=/inspire/qb-ilm2/project/neosmosis/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug/lca
 
 mkdir -p "$SAVE_DIR"
 
@@ -46,6 +46,6 @@ python train.py \
     --print_ref_model_stats True \
     --use_cross_attn_align True \
     --cross_attn_layer_idx -1 \
-    --align_loss_factor 0.05 \
-    --align_loss_warmup_ratio 0.1 \
+    --align_loss_factor 0.2 \
+    --align_loss_warmup_ratio 0.2 \
     --align_loss_decay_start 0.8

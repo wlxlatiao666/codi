@@ -123,7 +123,7 @@ class TrainingArguments(transformers.TrainingArguments):
     use_cross_attn_align: bool = field(default=False, metadata={"help": "Use cross-attention soft alignment distillation."})
     cross_attn_rank: int = field(default=64, metadata={"help": "Low-rank dimension for cross-attention Q/K/V projections."})
     cross_attn_heads: int = field(default=4, metadata={"help": "Number of attention heads for cross-attention."})
-    cross_attn_layer_idx: int = field(default=-3, metadata={"help": "Which layer of student to align (use negative idx, e.g., -3 = 3rd last)."})
+    cross_attn_layer_idx: int = field(default=-1, metadata={"help": "Which layer of student to align (use negative idx, e.g., -1 = 1rd last)."})
     align_loss_factor: float = field(default=0.3, metadata={"help": "Weight for cross-attention soft alignment loss (lambda_a)."})
     align_loss_warmup_ratio: float = field(default=0.2, metadata={"help": "Warmup ratio for alignment loss (e.g., 0.1 = first 10% steps)."})
     align_loss_decay_start: float = field(default=0.8, metadata={"help": "Start decay at this ratio of total steps."})
@@ -250,7 +250,7 @@ class LearnableContrastiveAligner(nn.Module):
         # [batch, num_latent, cot_len]
 
         # 采样一些低attention的位置作为负例
-        num_neg_teacher = min(4, teacher_sim.shape[-1] - 1)
+        num_neg_teacher = min(5, teacher_sim.shape[-1] - 1)
         if num_neg_teacher > 0:
             _, neg_indices = torch.topk(-attn_weights, k=num_neg_teacher, dim=-1)
             neg_sims_teacher = teacher_sim.gather(-1, neg_indices)
@@ -267,12 +267,12 @@ class LearnableContrastiveAligner(nn.Module):
 
         # ========== 5. 稀疏性损失：让attention更集中 ==========
         # 计算attention的熵，鼓励更sharp的分布
-        entropy = -(attn_weights * torch.log(attn_weights + 1e-9)).sum(dim=-1)
-        sparsity_loss = entropy.mean()
+        # entropy = -(attn_weights * torch.log(attn_weights + 1e-9)).sum(dim=-1)
+        # sparsity_loss = entropy.mean()
 
-        total_loss = loss + 0.01 * sparsity_loss
+        # total_loss = loss + 0.01 * sparsity_loss
 
-        return total_loss, attn_weights
+        return loss, attn_weights
 
 
 def get_align_loss_weight(
