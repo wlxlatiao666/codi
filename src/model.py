@@ -637,6 +637,32 @@ class CODI(torch.nn.Module):
                 teacher_cot_mask=teacher_cot_mask
             )
 
+            # ===== 诊断: 每 500 步打印 attention 权重的熵和 top-3 关注位置 =====
+            # 用于判断 attention 是否退化 (模式A: 都关注同一位置 / 模式B: 均匀分布)
+            if step is not None and step % 500 == 0:
+                with torch.no_grad():
+                    # 取 batch 中第一个样本的 attention: [num_latent, cot_len]
+                    aw = attn_weights[0].float()
+                    valid_len = int(teacher_cot_mask[0].sum().item())  # 该样本有效 CoT 长度
+
+                    # 每个 latent 的注意力熵 (越大越接近均匀分布)
+                    entropy = -(aw * torch.log(aw + 1e-9)).sum(dim=-1)  # [num_latent]
+                    # 归一化熵 (除以 log(valid_len), 便于跨样本比较, 范围 ~[0,1])
+                    norm_factor = math.log(valid_len) if valid_len > 1 else 1.0
+                    norm_entropy = entropy / norm_factor
+
+                    # 每个 latent 最关注的 top-3 CoT 位置及其权重
+                    k = min(3, aw.shape[-1])
+                    topk_vals, topk_idx = torch.topk(aw, k=k, dim=-1)  # [num_latent, k]
+
+                    print(f"[ATTN] step={step}, valid_cot_len={valid_len}")
+                    print(f"[ATTN]   entropy(per-latent)      = {[round(x, 3) for x in entropy.tolist()]}")
+                    print(f"[ATTN]   norm_entropy(per-latent)  = {[round(x, 3) for x in norm_entropy.tolist()]}")
+                    for li in range(aw.shape[0]):
+                        idx_str = topk_idx[li].tolist()
+                        val_str = [round(x, 3) for x in topk_vals[li].tolist()]
+                        print(f"[ATTN]   latent{li}: top{k}_pos={idx_str}, top{k}_weight={val_str}")
+
             # 4. 权重调度
             if step_ratio is not None:
                 align_weight = get_align_loss_weight(
