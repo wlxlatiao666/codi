@@ -8,7 +8,7 @@ mkdir -p "$SAVE_DIR"
 
 python train.py \
     --output_dir "$SAVE_DIR" \
-    --expt_name gpt2-gsm8k-aug-contrastive \
+    --expt_name gpt2-gsm8k-aug-contrastive-0.1 \
     --logging_dir "$SAVE_DIR/logs" \
     --logging_steps 10 \
     --model_name_or_path "/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt2" \
@@ -45,7 +45,7 @@ python train.py \
     --remove_eos True \
     --print_ref_model_stats True \
     --use_cross_attn_align True \
-    --cross_attn_layer_idx -1 \
-    --align_loss_factor 0.01 \
-    --align_loss_warmup_ratio 0.3 \
-    --align_loss_decay_start 0.7
+    --cross_attn_layer_idx -3 \
+    --align_loss_factor 0.1 \
+    --align_loss_warmup_ratio 0.5 \
+    --align_loss_decay_start 0.9
