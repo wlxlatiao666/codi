@@ -46,6 +46,6 @@ python train.py \
     --print_ref_model_stats True \
     --use_cross_attn_align True \
     --cross_attn_layer_idx -1 \
-    --align_loss_factor 0.2 \
-    --align_loss_warmup_ratio 0.2 \
-    --align_loss_decay_start 0.8
+    --align_loss_factor 0.01 \
+    --align_loss_warmup_ratio 0.3 \
+    --align_loss_decay_start 0.7
