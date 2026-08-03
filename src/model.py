@@ -127,6 +127,7 @@ class TrainingArguments(transformers.TrainingArguments):
     align_loss_factor: float = field(default=0.3, metadata={"help": "Weight for cross-attention soft alignment loss (lambda_a)."})
     align_loss_warmup_ratio: float = field(default=0.2, metadata={"help": "Warmup ratio for alignment loss (e.g., 0.1 = first 10% steps)."})
     align_loss_decay_start: float = field(default=0.8, metadata={"help": "Start decay at this ratio of total steps."})
+    align_temperature: float = field(default=0.5, metadata={"help": "Temperature for contrastive InfoNCE alignment loss (higher = smoother, more numerically stable)."})
 
 def print_trainable_parameters(model):
     trainable_parameters = 0
@@ -154,13 +155,15 @@ class LearnableContrastiveAligner(nn.Module):
         - 让student latent自动学习该attend to teacher CoT的哪些位置
         - 使用对比学习而非强制MSE
     """
-    def __init__(self, dim: int, num_latent: int, temperature: float = 0.1):
+    def __init__(self, dim: int, num_latent: int, temperature: float = 0.5, sparsity_factor: float = 0.0):
         super().__init__()
         self.dim = dim
         self.num_latent = num_latent
 
         # 固定温度参数（防止数值不稳定）
         self.temperature = temperature
+        # attention 稀疏性正则系数（>0 时鼓励更 sharp 的注意力，缓解均匀塌缩）
+        self.sparsity_factor = sparsity_factor
 
         # 投影层：把student和teacher投影到同一个对比空间
         self.student_proj = nn.Sequential(
@@ -215,7 +218,8 @@ class LearnableContrastiveAligner(nn.Module):
         # mask padding
         if teacher_cot_mask is not None:
             mask = teacher_cot_mask.unsqueeze(1)  # [batch, 1, cot_len]
-            attn_scores = attn_scores.masked_fill(~mask, -1e9)
+            # 用该 dtype 的有限最小值代替 -1e9，避免 bf16 下溢出/精度异常
+            attn_scores = attn_scores.masked_fill(~mask, torch.finfo(attn_scores.dtype).min)
 
         attn_weights = torch.softmax(attn_scores, dim=-1)  # [batch, num_latent, cot_len]
 
@@ -259,20 +263,39 @@ class LearnableContrastiveAligner(nn.Module):
         else:
             neg_sims = neg_sims_cross
 
-        # --- InfoNCE loss
-        exp_pos = torch.exp(pos_sims / self.temperature)
-        exp_neg = torch.exp(neg_sims / self.temperature).sum(dim=-1)
+        # --- InfoNCE loss (log-sum-exp 稳定版) ---
+        # 把正例放在 index 0，负例接在后面，构造 logits，目标标签恒为 0。
+        # F.cross_entropy 内部使用 log_softmax(=log-sum-exp)，天然数值稳定，
+        # 避免手写 exp()/log() 在低温或 bf16 下溢出为 inf/nan。
+        logits = torch.cat([pos_sims.unsqueeze(-1), neg_sims], dim=-1) / self.temperature
+        # [batch, num_latent, 1 + num_neg]
+        logits = logits.reshape(-1, logits.shape[-1])  # [(batch*num_latent), 1+num_neg]
 
-        loss = -torch.log(exp_pos / (exp_pos + exp_neg + 1e-9)).mean()
+        # 保护：过滤掉 teacher CoT 全为 padding 的样本（valid_cot_len=0），
+        # 它们的 aligned_teacher 来自全 mask 行的伪均匀分布，会污染对比损失。
+        if teacher_cot_mask is not None:
+            valid_rows = teacher_cot_mask.any(dim=-1)  # [batch] True=该样本有有效 CoT
+            row_keep = valid_rows.unsqueeze(-1).expand(batch_size, num_latent).reshape(-1)
+            logits = logits[row_keep]
+
+        if logits.shape[0] == 0:
+            # 整个 batch 都没有有效 CoT（极端情况），返回 0 损失但保持梯度图
+            loss = (student_proj.sum() * 0.0)
+        else:
+            targets = torch.zeros(logits.shape[0], dtype=torch.long, device=logits.device)
+            loss = F.cross_entropy(logits, targets)
 
         # ========== 5. 稀疏性损失：让attention更集中 ==========
-        # 计算attention的熵，鼓励更sharp的分布
-        # entropy = -(attn_weights * torch.log(attn_weights + 1e-9)).sum(dim=-1)
-        # sparsity_loss = entropy.mean()
+        # 注意方向：sparsity_loss = entropy.mean()，最小化它会让 attention 更 sharp。
+        # 当前问题是 attention 快速塌缩(entropy->0)，因此默认不启用(sparsity_factor=0)。
+        # 若需缓解“均匀塌缩”可设正系数；若需缓解“单点塌缩”应改用负系数(奖励熵)。
+        total_loss = loss
+        if self.sparsity_factor != 0.0:
+            entropy = -(attn_weights * torch.log(attn_weights + 1e-9)).sum(dim=-1)
+            sparsity_loss = entropy.mean()
+            total_loss = loss + self.sparsity_factor * sparsity_loss
 
-        # total_loss = loss + 0.01 * sparsity_loss
-
-        return loss, attn_weights
+        return total_loss, attn_weights
 
 
 def get_align_loss_weight(
@@ -378,7 +401,7 @@ class CODI(torch.nn.Module):
             self.contrastive_aligner = LearnableContrastiveAligner(
                 dim=self.dim,
                 num_latent=self.num_latent,
-                temperature=0.1
+                temperature=training_args.align_temperature
             )
             self.cross_attn_layer_idx = training_args.cross_attn_layer_idx
             self.align_loss_factor = training_args.align_loss_factor
