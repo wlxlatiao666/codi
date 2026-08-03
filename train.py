@@ -309,6 +309,12 @@ def train():
                     if not training_args.include_last_cot:
                         cot = cot[:-1]
 
+                    # 过滤空 CoT：对比对齐依赖非空 teacher CoT，
+                    # 空 CoT 会导致 valid_cot_len=0 的全 mask 行，进而引发数值不稳定。
+                    # 仅在对齐模式下过滤，避免改变 baseline 的数据分布（保持可比性）。
+                    if self.use_cross_attn_align and len(" ".join(cot).strip()) == 0:
+                        continue
+
                     len_cot = len(cot)
                     for i in range(training_args.num_latent):
                         cot_list.append(" ".join(cot[:max(0, len_cot-i)]))
