@@ -128,6 +128,8 @@ class TrainingArguments(transformers.TrainingArguments):
     align_loss_warmup_ratio: float = field(default=0.2, metadata={"help": "Warmup ratio for alignment loss (e.g., 0.1 = first 10% steps)."})
     align_loss_decay_start: float = field(default=0.8, metadata={"help": "Start decay at this ratio of total steps."})
     align_temperature: float = field(default=0.5, metadata={"help": "Temperature for contrastive InfoNCE alignment loss (higher = smoother, more numerically stable)."})
+    align_warmup_steps: int = field(default=0, metadata={"help": "Phase 1: for the first N steps, detach student hiddens so align loss only trains the aligner (does NOT touch the backbone). 0 = disabled (gradient always flows to backbone)."})
+    align_freeze_aligner_after_warmup: bool = field(default=False, metadata={"help": "Phase 2: after warmup, freeze the aligner so align loss gradient flows only into the backbone (prevents the aligner from taking the attention-collapse shortcut)."})
 
 def print_trainable_parameters(model):
     trainable_parameters = 0
@@ -317,11 +319,11 @@ def get_align_loss_weight(
     Returns:
         weight: 当前步的权重
     """
-    if step_ratio < warmup_ratio:
+    if warmup_ratio > 0 and step_ratio < warmup_ratio:
         # Warmup: 从 0 线性增加
         return max_weight * (step_ratio / warmup_ratio)
     elif step_ratio < decay_start:
-        # 保持峰值
+        # 保持峰值 (warmup_ratio=0 时从第 0 步即为峰值, ease-in 交给两阶段机制负责)
         return max_weight
     else:
         # Decay to 0
@@ -407,6 +409,9 @@ class CODI(torch.nn.Module):
             self.align_loss_factor = training_args.align_loss_factor
             self.align_loss_warmup_ratio = training_args.align_loss_warmup_ratio
             self.align_loss_decay_start = training_args.align_loss_decay_start
+            # 两阶段对齐调度参数
+            self.align_warmup_steps = training_args.align_warmup_steps
+            self.align_freeze_aligner_after_warmup = training_args.align_freeze_aligner_after_warmup
             # Convert to same dtype as main model
             self.contrastive_aligner.to(dtype=(torch.float16 if training_args.bf16 is False else torch.bfloat16))
 
@@ -616,8 +621,31 @@ class CODI(torch.nn.Module):
 
         # ===== Learnable Contrastive 对齐损失 =====
         if self.use_cross_attn_align and ref_cot_start is not None and len(student_latent_hiddens) > 0:
+            # ===== 两阶段对齐调度 =====
+            # Phase 1 (step < align_warmup_steps): detach 主干，align loss 只训练 aligner，
+            #          让 aligner 先学出稳定、非塌缩的对齐目标，且完全不扰动主干（不会崩）。
+            # Phase 2 (step >= align_warmup_steps): 接通主干（不 detach），让 align loss 塑形主干；
+            #          可选地冻结 aligner，堵死“塌缩 attention 走捷径”这条路，
+            #          迫使对比压力真正传导到主干（推理态受益的关键）。
+            in_warmup = (
+                self.align_warmup_steps > 0
+                and step is not None
+                and step < self.align_warmup_steps
+            )
+            detach_backbone = in_warmup
+            freeze_aligner = (
+                (not in_warmup)
+                and self.align_freeze_aligner_after_warmup
+            )
+            # 冻结/解冻 aligner 参数（幂等，可安全每步调用）
+            for p in self.contrastive_aligner.parameters():
+                p.requires_grad = not freeze_aligner
+
             # 1. 准备 Student 侧：使用经过transformer后的hidden states
             student_hiddens = torch.stack(student_latent_hiddens, dim=1)  # [batch, num_latent, dim]
+            if detach_backbone:
+                # Phase 1: 切断到主干的梯度，align loss 的梯度只会落到 aligner 上
+                student_hiddens = student_hiddens.detach()
 
             # 2. 准备 Teacher CoT 侧: 提取 CoT 区间的隐状态
             batch_size = ref_input_ids.shape[0]
@@ -696,7 +724,10 @@ class CODI(torch.nn.Module):
                 )
             else:
                 align_weight = self.align_loss_factor
-            print(f"step={step}, align_weight={align_weight}")
+            phase = "P1(detach-backbone,train-aligner)" if detach_backbone else (
+                "P2(train-backbone,freeze-aligner)" if freeze_aligner else "P2(train-backbone+aligner)"
+            )
+            print(f"step={step}, align_weight={align_weight}, align_phase={phase}")
 
             align_loss_total = align_loss * align_weight
 

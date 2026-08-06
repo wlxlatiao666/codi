@@ -19,7 +19,7 @@ python train.py \
     --per_device_train_batch_size 64 \
     --gradient_accumulation_steps 2 \
     --bf16 \
-    --num_train_epochs 40 \
+    --num_train_epochs 20 \
     --learning_rate 3e-3 \
     --max_grad_norm 2.0 \
     --use_lora True \
@@ -48,5 +48,7 @@ python train.py \
     --cross_attn_layer_idx -3 \
     --align_loss_factor 0.1 \
     --align_temperature 0.5 \
-    --align_loss_warmup_ratio 0.3 \
+    --align_loss_warmup_ratio 0.0 \
+    --align_warmup_steps 10000 \
+    --align_freeze_aligner_after_warmup True \
     --align_loss_decay_start 0.9
