@@ -48,5 +48,7 @@ python train.py \
     --cross_attn_layer_idx -3 \
     --align_loss_factor 0.1 \
     --align_temperature 0.5 \
-    --align_loss_warmup_ratio 0.3 \
+    --align_loss_warmup_ratio 0.0 \
+    --align_warmup_steps 1000 \
+    --align_freeze_aligner_after_warmup True \
     --align_loss_decay_start 0.9
