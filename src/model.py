@@ -107,7 +107,7 @@ class TrainingArguments(transformers.TrainingArguments):
     prj_no_ln: bool = field(default=False, metadata={"help": "Remove the Layer Norm layer for the projection module."})
     distill_loss_div_std: bool = field(default=False, metadata={"help": "Divide the distillation loss by a std for normallisation."})
     distill_loss_type: str = field(default="smooth_l1", metadata={"help": "Specify the distillation loss. Use smoothL1 by default."})
-    distill_loss_factor: float = field(default=1.0, metadata={"help": "A multiplier of the distillation loss."})
+    distill_loss_factor: float = field(default=1.0, metadata={"help": "A multiplier of the distillation loss; set to 0 to skip it entirely."})
     ref_loss_factor: float = field(default=1.0, metadata={"help": "A multiplier of the distillation loss."})
     inf_latent_iterations: int = field(default=1, metadata={"help": ""})
     inf_num_iterations: int = field(default=5, metadata={"help": "Run multiple times during inference"})
@@ -159,6 +159,11 @@ class LearnableContrastiveAligner(nn.Module):
     """
     def __init__(self, dim: int, num_latent: int, temperature: float = 0.5, sparsity_factor: float = 0.0):
         super().__init__()
+        if temperature <= 0:
+            raise ValueError(f"align temperature must be positive, got {temperature}")
+        if num_latent < 1:
+            raise ValueError(f"contrastive alignment requires num_latent >= 1, got {num_latent}")
+
         self.dim = dim
         self.num_latent = num_latent
 
@@ -213,35 +218,43 @@ class LearnableContrastiveAligner(nn.Module):
         q = self.attn_query(student_proj)  # [batch, num_latent, dim]
         k = self.attn_key(teacher_proj)  # [batch, cot_len, dim]
 
-        # 计算attention分数
-        attn_scores = torch.matmul(q, k.transpose(-1, -2)) / (self.dim ** 0.5)
+        # attention logits/softmax 使用 fp32，避免 bf16/fp16 下 q·k 或 softmax
+        # 精度不足。输出权重在与 value 相乘前再转回模型 dtype。
+        with torch.autocast(device_type=q.device.type, enabled=False):
+            attn_scores = torch.matmul(q.float(), k.float().transpose(-1, -2)) / (self.dim ** 0.5)
         # [batch, num_latent, cot_len]
 
         # mask padding
         if teacher_cot_mask is not None:
             mask = teacher_cot_mask.unsqueeze(1)  # [batch, 1, cot_len]
-            # 用该 dtype 的有限最小值代替 -1e9，避免 bf16 下溢出/精度异常
-            attn_scores = attn_scores.masked_fill(~mask, torch.finfo(attn_scores.dtype).min)
+            valid_rows = teacher_cot_mask.any(dim=-1).view(batch_size, 1, 1)
+            attn_scores = attn_scores.masked_fill(~mask, float("-inf"))
+            # softmax(all -inf) 会产生 NaN；空 CoT 行先置零，稍后其权重和
+            # logits 会被显式清零/过滤。
+            attn_scores = torch.where(valid_rows, attn_scores, torch.zeros_like(attn_scores))
 
         attn_weights = torch.softmax(attn_scores, dim=-1)  # [batch, num_latent, cot_len]
+        if teacher_cot_mask is not None:
+            attn_weights = attn_weights * mask
 
         # ========== 3. 得到对齐后的teacher表示 ==========
-        aligned_teacher = torch.matmul(attn_weights, teacher_proj)
+        aligned_teacher = torch.matmul(attn_weights.to(teacher_proj.dtype), teacher_proj)
         # [batch, num_latent, dim]
 
         # ========== 4. 计算对比损失 ==========
         # 归一化特征
-        student_normalized = F.normalize(student_proj, dim=-1)
-        aligned_normalized = F.normalize(aligned_teacher, dim=-1)
+        with torch.autocast(device_type=student_proj.device.type, enabled=False):
+            student_normalized = F.normalize(student_proj.float(), dim=-1, eps=1e-6)
+            aligned_normalized = F.normalize(aligned_teacher.float(), dim=-1, eps=1e-6)
 
-        # --- 正例相似度：(student_i, aligned_teacher_i)
-        pos_sims = (student_normalized * aligned_normalized).sum(dim=-1)
-        # [batch, num_latent]
+            # --- 正例相似度：(student_i, aligned_teacher_i)
+            pos_sims = (student_normalized * aligned_normalized).sum(dim=-1)
+            # [batch, num_latent]
 
-        # --- 负例相似度：
-        # 负例1: student_i 和其他位置的aligned_teacher_j (j != i)
-        # 计算所有pair的相似度
-        all_sim = torch.matmul(student_normalized, aligned_normalized.transpose(-1, -2))
+            # --- 负例相似度：
+            # 负例1: student_i 和其他位置的aligned_teacher_j (j != i)
+            # 计算所有pair的相似度
+            all_sim = torch.matmul(student_normalized, aligned_normalized.transpose(-1, -2))
         # [batch, num_latent, num_latent]
 
         # 去掉对角线（正例）
@@ -251,15 +264,44 @@ class LearnableContrastiveAligner(nn.Module):
 
         # 负例2: student_i 和teacher的其他位置
         # 重新计算student对teacher各个位置的相似度
-        teacher_normalized = F.normalize(teacher_proj, dim=-1)
-        teacher_sim = torch.matmul(student_normalized, teacher_normalized.transpose(-1, -2))
+        with torch.autocast(device_type=teacher_proj.device.type, enabled=False):
+            teacher_normalized = F.normalize(teacher_proj.float(), dim=-1, eps=1e-6)
+            teacher_sim = torch.matmul(student_normalized, teacher_normalized.transpose(-1, -2))
         # [batch, num_latent, cot_len]
 
-        # 采样一些低attention的位置作为负例
+        # 采样一些低 attention 的有效 CoT 位置作为负例。
+        # 不能直接对 -attn_weights 做 topk：padding 的 attention 恒为 0，
+        # 会被优先选中，导致模型把伪造的 padding hidden 当成 teacher 负例。
         num_neg_teacher = min(5, teacher_sim.shape[-1] - 1)
         if num_neg_teacher > 0:
-            _, neg_indices = torch.topk(-attn_weights, k=num_neg_teacher, dim=-1)
+            if teacher_cot_mask is not None:
+                valid_teacher_mask = teacher_cot_mask.unsqueeze(1).expand(-1, num_latent, -1)
+                neg_rank_scores = attn_weights.masked_fill(
+                    ~valid_teacher_mask,
+                    torch.finfo(attn_weights.dtype).max,
+                )
+                _, neg_indices = torch.topk(
+                    neg_rank_scores,
+                    k=num_neg_teacher,
+                    dim=-1,
+                    largest=False,
+                )
+            else:
+                _, neg_indices = torch.topk(-attn_weights, k=num_neg_teacher, dim=-1)
+
             neg_sims_teacher = teacher_sim.gather(-1, neg_indices)
+
+            if teacher_cot_mask is not None:
+                # 每个样本至少保留一个有效 teacher 位置作为非负例；当有效
+                # CoT 长度不足时，用 -inf 屏蔽 topk 补齐出来的槽位。
+                valid_neg_count = (teacher_cot_mask.sum(dim=-1) - 1).clamp(
+                    min=0,
+                    max=num_neg_teacher,
+                )
+                neg_rank = torch.arange(num_neg_teacher, device=teacher_sim.device)
+                neg_valid_mask = neg_rank.view(1, 1, -1) < valid_neg_count.view(-1, 1, 1)
+                neg_sims_teacher = neg_sims_teacher.masked_fill(~neg_valid_mask, float("-inf"))
+
             # 合并两类负例
             neg_sims = torch.cat([neg_sims_cross, neg_sims_teacher], dim=-1)
         else:
@@ -281,8 +323,9 @@ class LearnableContrastiveAligner(nn.Module):
             logits = logits[row_keep]
 
         if logits.shape[0] == 0:
-            # 整个 batch 都没有有效 CoT（极端情况），返回 0 损失但保持梯度图
-            loss = (student_proj.sum() * 0.0)
+            # 整个 batch 都没有有效 CoT（极端情况），返回 0 损失并让全部
+            # aligner 参数留在梯度图中，避免 DDP 把它们误判为 unused。
+            loss = (student_proj.sum() + teacher_proj.sum() + q.sum() + k.sum()) * 0.0
         else:
             targets = torch.zeros(logits.shape[0], dtype=torch.long, device=logits.device)
             loss = F.cross_entropy(logits, targets)
@@ -319,10 +362,22 @@ def get_align_loss_weight(
     Returns:
         weight: 当前步的权重
     """
+    if not 0.0 <= warmup_ratio <= decay_start <= 1.0:
+        raise ValueError(
+            "align schedule must satisfy 0 <= warmup_ratio <= decay_start <= 1, "
+            f"got warmup_ratio={warmup_ratio}, decay_start={decay_start}"
+        )
+    if max_weight < 0.0:
+        raise ValueError(f"align max_weight must be non-negative, got {max_weight}")
+
+    # 自定义 total-step 估算、恢复训练或 max_steps 配置可能让比例略微越界。
+    # clamp 可避免 decay 权重变负；decay_start=1 表示不做末段衰减。
+    step_ratio = min(max(float(step_ratio), 0.0), 1.0)
+
     if warmup_ratio > 0 and step_ratio < warmup_ratio:
         # Warmup: 从 0 线性增加
         return max_weight * (step_ratio / warmup_ratio)
-    elif step_ratio < decay_start:
+    elif step_ratio < decay_start or decay_start == 1.0:
         # 保持峰值 (warmup_ratio=0 时从第 0 步即为峰值, ease-in 交给两阶段机制负责)
         return max_weight
     else:
@@ -511,6 +566,7 @@ class CODI(torch.nn.Module):
         distill_loss_total = 0
         ce_loss_total = 0
         align_loss_total = 0
+        align_loss_raw = 0
         align_weight = 0.0
 
         # ===== Teacher 前向传播 (获取 CoT 隐状态) =====
@@ -589,26 +645,31 @@ class CODI(torch.nn.Module):
                     # Teacher task's output
                     ref_outputs = ref_outputs_list[0]
 
-                    distill_loss = 0
-                    # Calculate distillation loss between the teacher's logits and the student's logits for every layer
-                    for j, (out, ref_out) in enumerate(zip(outputs.hidden_states, ref_outputs.hidden_states)):
-                        ref_selected = ref_out.gather(1, ref_answer_position.unsqueeze(-1).unsqueeze(-1).expand(-1, -1, ref_out.size(-1)))
-                        out_selected = out.gather(1, model_answer_position.unsqueeze(-1).unsqueeze(-1).expand(-1, -1, out.size(-1)))
+                    # factor=0 表示真正禁用 distillation。不能只在总 loss 中乘 0，
+                    # 因为一旦这里产生 NaN，NaN * 0 仍会污染总 loss。
+                    if self.distill_loss_factor != 0.0:
+                        distill_loss = 0
+                        # Calculate distillation loss between the teacher's and
+                        # student's answer-position hidden states for every layer.
+                        for out, ref_out in zip(outputs.hidden_states, ref_outputs.hidden_states):
+                            ref_selected = ref_out.gather(1, ref_answer_position.unsqueeze(-1).unsqueeze(-1).expand(-1, -1, ref_out.size(-1)))
+                            out_selected = out.gather(1, model_answer_position.unsqueeze(-1).unsqueeze(-1).expand(-1, -1, out.size(-1)))
 
-                        distill_loss_tmp = self.distill_loss_fct(out_selected, ref_selected.detach())
+                            distill_loss_tmp = self.distill_loss_fct(out_selected, ref_selected.detach())
 
-                        if self.distill_loss_div_std:
-                            if self.distill_loss_type == 'l2':
-                                distill_loss_tmp /= ref_selected.std()
-                            distill_loss_tmp /= ref_selected.std()
-                        distill_loss += distill_loss_tmp
+                            if self.distill_loss_div_std:
+                                # 在 fp32 中计算并 clamp，避免很小的 teacher std
+                                # 在 bf16/fp16 训练中放大成 inf/NaN。
+                                ref_std = ref_selected.float().std().clamp_min(1e-6)
+                                distill_loss_tmp = distill_loss_tmp / ref_std.to(distill_loss_tmp.dtype)
+                            distill_loss += distill_loss_tmp
 
-                    distill_loss /= len(outputs.hidden_states)
+                        distill_loss /= len(outputs.hidden_states)
 
-                    if self.print_loss:
-                        print(f'latent{i}: distill_loss={distill_loss}')
+                        if self.print_loss:
+                            print(f'latent{i}: distill_loss={distill_loss}')
 
-                    distill_loss_total += distill_loss
+                        distill_loss_total += distill_loss
 
                     # Calculate the CE loss for the student task
                     if i == num_latent - 1:
@@ -673,7 +734,9 @@ class CODI(torch.nn.Module):
 
             for h, m in zip(teacher_cot_hiddens, teacher_cot_mask):
                 pad_len = max_cot_len - h.shape[0]
-                padded_h = torch.cat([h, torch.zeros(pad_len, h.shape[1], device=h.device)], dim=0)
+                # new_zeros 同时继承 device 和 dtype；默认 torch.zeros(float32)
+                # 会把 bf16/fp16 teacher hidden 静默提升到 fp32。
+                padded_h = torch.cat([h, h.new_zeros((pad_len, h.shape[1]))], dim=0)
                 padded_m = torch.cat([m, torch.zeros(pad_len, dtype=torch.bool, device=m.device)], dim=0)
                 padded_teacher_hiddens.append(padded_h)
                 padded_teacher_mask.append(padded_m)
@@ -687,6 +750,7 @@ class CODI(torch.nn.Module):
                 teacher_cot_hiddens=teacher_cot_hiddens.detach(),
                 teacher_cot_mask=teacher_cot_mask
             )
+            align_loss_raw = align_loss
 
             # ===== 诊断: 每 500 步打印 attention 权重的熵和 top-3 关注位置 =====
             # 用于判断 attention 是否退化 (模式A: 都关注同一位置 / 模式B: 均匀分布)
@@ -740,12 +804,23 @@ class CODI(torch.nn.Module):
         ref_ce_loss = self.loss_fct(effective_ref_logits, ref_target_ids)
         ref_ce_loss *= self.ref_loss_factor
 
+        # DataParallel/DDP 的输出聚合要求各 loss 指标保持 tensor。禁用某项
+        # loss 时也返回同 device/dtype 的 0-d tensor，而不是 Python 0/0.0。
+        if not torch.is_tensor(ce_loss_total):
+            ce_loss_total = ref_ce_loss.new_zeros(())
+        if not torch.is_tensor(distill_loss_total):
+            distill_loss_total = ref_ce_loss.new_zeros(())
+        if not torch.is_tensor(align_loss_total):
+            align_loss_total = ref_ce_loss.new_zeros(())
+        if not torch.is_tensor(align_loss_raw):
+            align_loss_raw = ref_ce_loss.new_zeros(())
+
         # Weigh the distillation loss
         distill_loss_total_scaled = distill_loss_total * self.distill_loss_factor
 
         # Total loss
         loss = ce_loss_total + distill_loss_total_scaled + ref_ce_loss
-        if self.use_cross_attn_align and align_loss_total != 0:
+        if self.use_cross_attn_align:
             loss = loss + align_loss_total
 
         if self.print_loss:
@@ -755,26 +830,22 @@ class CODI(torch.nn.Module):
             print(loss_str)
 
         # Keep as tensors for DataParallel gather (detach but don't convert to Python float)
-        if ce_loss_total != 0 and not isinstance(ce_loss_total, float):
-            ce_loss_total = ce_loss_total.detach()
-        if distill_loss_total != 0 and not isinstance(distill_loss_total, float):
-            distill_loss_total = distill_loss_total.detach()
-        if ref_ce_loss != 0 and not isinstance(ref_ce_loss, float):
-            ref_ce_loss = ref_ce_loss.detach()
+        ce_loss_total = ce_loss_total.detach()
+        distill_loss_total = distill_loss_total.detach()
+        ref_ce_loss = ref_ce_loss.detach()
 
         return_dict = {
             "loss": loss,
             "logits": logits,
             "ce_loss": ce_loss_total,
             "distill_loss": distill_loss_total,
+            "distill_loss_scaled": distill_loss_total_scaled.detach() if torch.is_tensor(distill_loss_total_scaled) else distill_loss_total_scaled,
             "ref_ce_loss": ref_ce_loss,
         }
 
         if self.use_cross_attn_align:
-            if not isinstance(align_loss_total, float):
-                return_dict["align_loss"] = align_loss_total.detach()
-            else:
-                return_dict["align_loss"] = align_loss_total
+            return_dict["align_loss"] = align_loss_total.detach()
+            return_dict["align_loss_raw"] = align_loss_raw.detach()
             # Convert align_weight to a tensor for DataParallel
             return_dict["align_weight"] = torch.tensor(align_weight, device=loss.device, dtype=loss.dtype)
 

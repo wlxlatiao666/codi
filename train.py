@@ -32,6 +32,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
 class CustomTrainer(Trainer):
+    @staticmethod
+    def _log_scalar(value):
+        # DataParallel gather 会把每张卡的 0-d tensor 拼成向量；日志取均值，
+        # DDP/单卡标量也沿用同一路径。
+        if torch.is_tensor(value):
+            return value.detach().float().mean().item()
+        return value
+
     def compute_loss(self, model, inputs, num_items_in_batch):
         # Extract the global step from the optimizer
         step = self.state.global_step
@@ -54,15 +62,19 @@ class CustomTrainer(Trainer):
         #"ce_loss": ce_loss_total, "mse_loss": mse_loss_total, "ref_ce_loss": ref_ce_loss
         if step % self.args.logging_steps == 0:
             log_dict = {
-                "loss": loss.item(),
-                "ce_loss": outputs["ce_loss"].item() if torch.is_tensor(outputs["ce_loss"]) else outputs["ce_loss"],
-                "distill_loss": outputs["distill_loss"].item() if torch.is_tensor(outputs["distill_loss"]) else outputs["distill_loss"],
-                "ref_ce_loss": outputs["ref_ce_loss"].item() if torch.is_tensor(outputs["ref_ce_loss"]) else outputs["ref_ce_loss"],
+                "loss": self._log_scalar(loss),
+                "ce_loss": self._log_scalar(outputs["ce_loss"]),
+                "distill_loss": self._log_scalar(outputs["distill_loss"]),
+                "ref_ce_loss": self._log_scalar(outputs["ref_ce_loss"]),
             }
+            if "distill_loss_scaled" in outputs:
+                log_dict["distill_loss_scaled"] = self._log_scalar(outputs["distill_loss_scaled"])
             if "align_loss" in outputs:
-                log_dict["align_loss"] = outputs["align_loss"].item() if torch.is_tensor(outputs["align_loss"]) else outputs["align_loss"]
+                log_dict["align_loss"] = self._log_scalar(outputs["align_loss"])
+            if "align_loss_raw" in outputs:
+                log_dict["align_loss_raw"] = self._log_scalar(outputs["align_loss_raw"])
             if "align_weight" in outputs:
-                log_dict["align_weight"] = outputs["align_weight"].item() if torch.is_tensor(outputs["align_weight"]) else outputs["align_weight"]
+                log_dict["align_weight"] = self._log_scalar(outputs["align_weight"])
             self.log(log_dict)
         return loss
 
