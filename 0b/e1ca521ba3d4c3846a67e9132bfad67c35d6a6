@@ -1,0 +1,21 @@
+scripts/test_gpt2_contrastive.sh
+  s_dbf4a5445c34d8::t_fb70388fb1023f 2-3,5,8,11-12,25,31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0be1ca521ba3d4c3846a67e9132bfad67c35d6a6",
+  "prompts": {},
+  "sessions": {
+    "s_dbf4a5445c34d8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a00e52-7ab8-7351-aa95-75d5e2ff41be",
+        "model": "unknown"
+      },
+      "human_author": "weilongxuan <weilongxuan@bytedance.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
