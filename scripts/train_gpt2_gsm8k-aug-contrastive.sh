@@ -3,7 +3,7 @@
 # 保留 student/ref CE，只用 align loss 替代原 hidden-state distill loss
 # align loss 全程固定为 0.1，同时训练 backbone 和 LearnableContrastiveAligner
 
-SAVE_DIR=/inspire/qb-ilm2/project/neosmosis/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug/lca
+SAVE_DIR=/inspire/hdd/global_user/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug/lca
 
 mkdir -p "$SAVE_DIR"
 
