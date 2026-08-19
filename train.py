@@ -216,13 +216,16 @@ def train():
             z[:len(y)] = -100
             ref_labels.append(z)
 
-        # ===== 计算 CoT 的位置信息 (用于 cross-attention 对齐) =====
+        # ===== 计算 CoT 的位置信息（用于固定分段对齐） =====
         ref_cot_start = []
         ref_cot_end = []
         if use_cross_attn_align:
             for src, cot, ref in zip(sources_id, cot_id, ref_input_ids):
                 ref_cot_start.append(len(src))  # CoT 开始位置
-                ref_cot_end.append(len(src) + len(cot))  # CoT 结束位置
+                # remove_eos=False 时 cot 末尾的 EOS 是人为追加的分隔符，
+                # 不属于显式 CoT 内容，因此不纳入固定分段。
+                cot_content_len = len(cot) - (0 if training_args.remove_eos else 1)
+                ref_cot_end.append(len(src) + cot_content_len)  # CoT 结束位置
             ref_cot_start = torch.tensor(ref_cot_start, dtype=torch.long)
             ref_cot_end = torch.tensor(ref_cot_end, dtype=torch.long)
 

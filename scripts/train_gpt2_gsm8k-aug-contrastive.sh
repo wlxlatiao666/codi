@@ -1,16 +1,17 @@
 #!/bin/bash
-# CODI with Learnable Contrastive Alignment (distillation-loss ablation)
+# CODI with fixed-segment CoT contrastive alignment (distillation-loss ablation)
 # 保留 student/ref CE，只用 align loss 替代原 hidden-state distill loss
-# align loss 全程固定为 0.1，同时训练 backbone 和 LearnableContrastiveAligner
+# align loss 全程固定为 0.1，同时训练 backbone 和对齐 projection heads
 
 SAVE_DIR=/inspire/hdd/global_user/weilongxuan-253108120168/codi/checkpoints/gpt2/gsm8k-aug/lca
+EXPT_NAME=gpt2-gsm8k-aug-fixed-segment-align-0.1
 
 mkdir -p "$SAVE_DIR"
 
 python train.py \
     --output_dir "$SAVE_DIR" \
-    --expt_name gpt2-gsm8k-aug-align-only-0.1 \
-    --logging_dir "$SAVE_DIR/gpt2-gsm8k-aug-align-only-0.1/logs" \
+    --expt_name "$EXPT_NAME" \
+    --logging_dir "$SAVE_DIR/$EXPT_NAME/logs" \
     --logging_steps 10 \
     --model_name_or_path "/inspire/hdd/global_user/weilongxuan-253108120168/models/gpt2" \
     --data_name icot \

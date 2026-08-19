@@ -13,7 +13,6 @@ from peft import (
     PeftConfig
 )
 from torch.nn.functional import gelu
-import math
 from safetensors.torch import load_file
 from transformers.modeling_outputs import ModelOutput
 import random
@@ -119,17 +118,18 @@ class TrainingArguments(transformers.TrainingArguments):
     print_loss: bool = field(default=True)
     max_token_num: int = field(default=1000, metadata={"help": "Limit the longest data to avoid OOM."})
 
-    # ===== Cross-Attention 软对齐蒸馏新增参数 =====
-    use_cross_attn_align: bool = field(default=False, metadata={"help": "Use cross-attention soft alignment distillation."})
-    cross_attn_rank: int = field(default=64, metadata={"help": "Low-rank dimension for cross-attention Q/K/V projections."})
-    cross_attn_heads: int = field(default=4, metadata={"help": "Number of attention heads for cross-attention."})
+    # ===== CoT 分段对比对齐参数 =====
+    # 参数名保留 cross_attn 前缀以兼容现有训练/测试脚本。
+    use_cross_attn_align: bool = field(default=False, metadata={"help": "Use fixed-segment CoT contrastive alignment."})
+    cross_attn_rank: int = field(default=64, metadata={"help": "Legacy unused argument retained for CLI compatibility."})
+    cross_attn_heads: int = field(default=4, metadata={"help": "Legacy unused argument retained for CLI compatibility."})
     cross_attn_layer_idx: int = field(default=-1, metadata={"help": "Which layer of student to align (use negative idx, e.g., -1 = 1rd last)."})
-    align_loss_factor: float = field(default=0.3, metadata={"help": "Weight for cross-attention soft alignment loss (lambda_a)."})
+    align_loss_factor: float = field(default=0.3, metadata={"help": "Weight for fixed-segment contrastive alignment loss (lambda_a)."})
     align_loss_warmup_ratio: float = field(default=0.2, metadata={"help": "Warmup ratio for alignment loss (e.g., 0.1 = first 10% steps)."})
     align_loss_decay_start: float = field(default=0.8, metadata={"help": "Start decay at this ratio of total steps."})
     align_temperature: float = field(default=0.5, metadata={"help": "Temperature for contrastive InfoNCE alignment loss (higher = smoother, more numerically stable)."})
-    align_warmup_steps: int = field(default=0, metadata={"help": "Phase 1: for the first N steps, detach student hiddens so align loss only trains the aligner (does NOT touch the backbone). 0 = disabled (gradient always flows to backbone)."})
-    align_freeze_aligner_after_warmup: bool = field(default=False, metadata={"help": "Phase 2: after warmup, freeze the aligner so align loss gradient flows only into the backbone (prevents the aligner from taking the attention-collapse shortcut)."})
+    align_warmup_steps: int = field(default=0, metadata={"help": "Phase 1: for the first N steps, detach student hiddens so align loss only trains projection heads (does NOT touch the backbone). 0 = disabled."})
+    align_freeze_aligner_after_warmup: bool = field(default=False, metadata={"help": "Phase 2: after warmup, freeze alignment projection heads so align loss only updates the backbone."})
 
 def print_trainable_parameters(model):
     trainable_parameters = 0
@@ -153,24 +153,29 @@ def freeze_model(model):
 
 class LearnableContrastiveAligner(nn.Module):
     """
-    可学习的对比对齐模块：
-        - 让student latent自动学习该attend to teacher CoT的哪些位置
-        - 使用对比学习而非强制MSE
+    固定分段的对比对齐模块：
+        - 将有效 teacher CoT 从前到后等分为 ``num_latent`` 个连续、不重叠的段
+        - 对每段 teacher hidden states 做 mean pooling，作为对应 student latent 的固定 target
+        - 使用对角 InfoNCE 强制 latent_i 对齐 CoT segment_i
+
+    类名保留为 LearnableContrastiveAligner 以兼容现有调用方；可学习部分
+    是 student/teacher projection heads，不再包含可学习 attention。
     """
-    def __init__(self, dim: int, num_latent: int, temperature: float = 0.5, sparsity_factor: float = 0.0):
+    def __init__(self, dim: int, num_latent: int, temperature: float = 0.5):
         super().__init__()
         if temperature <= 0:
             raise ValueError(f"align temperature must be positive, got {temperature}")
-        if num_latent < 1:
-            raise ValueError(f"contrastive alignment requires num_latent >= 1, got {num_latent}")
+        if num_latent < 2:
+            raise ValueError(
+                "fixed-segment contrastive alignment requires num_latent >= 2; "
+                f"got {num_latent}"
+            )
 
         self.dim = dim
         self.num_latent = num_latent
 
         # 固定温度参数（防止数值不稳定）
         self.temperature = temperature
-        # attention 稀疏性正则系数（>0 时鼓励更 sharp 的注意力，缓解均匀塌缩）
-        self.sparsity_factor = sparsity_factor
 
         # 投影层：把student和teacher投影到同一个对比空间
         self.student_proj = nn.Sequential(
@@ -186,9 +191,52 @@ class LearnableContrastiveAligner(nn.Module):
             nn.Linear(dim, dim),
         )
 
-        # 注意力投影层（用于计算student对teacher的attention）
-        self.attn_query = nn.Linear(dim, dim)
-        self.attn_key = nn.Linear(dim, dim)
+    @staticmethod
+    def _build_segment_weights(
+        teacher_cot_mask: torch.Tensor,
+        num_latent: int,
+        dtype: torch.dtype,
+    ):
+        """构造固定的等分段 mean-pooling 权重。
+
+        对有效长度 L，第 i 段的边界为::
+
+            start = floor(i * L / num_latent)
+            end   = floor((i + 1) * L / num_latent)
+
+        mask 不必是严格右 padding：分段使用每个有效 token 在 mask 中的顺序。
+        """
+        if teacher_cot_mask.ndim != 2:
+            raise ValueError(
+                "teacher_cot_mask must have shape [batch, cot_len], "
+                f"got {tuple(teacher_cot_mask.shape)}"
+            )
+
+        teacher_cot_mask = teacher_cot_mask.bool()
+        batch_size, cot_len = teacher_cot_mask.shape
+        device = teacher_cot_mask.device
+
+        valid_len = teacher_cot_mask.sum(dim=-1)  # [batch]
+        latent_idx = torch.arange(num_latent, device=device)
+        segment_start = (valid_len[:, None] * latent_idx[None, :]) // num_latent
+        segment_end = (valid_len[:, None] * (latent_idx[None, :] + 1)) // num_latent
+        segment_len = segment_end - segment_start  # [batch, num_latent]
+
+        # valid_rank 是 token 在各自样本有效 CoT 中的 0-based 序号。
+        valid_rank = teacher_cot_mask.long().cumsum(dim=-1) - 1
+        in_segment = (
+            teacher_cot_mask[:, None, :]
+            & (valid_rank[:, None, :] >= segment_start[:, :, None])
+            & (valid_rank[:, None, :] < segment_end[:, :, None])
+        )
+
+        segment_weights = in_segment.to(dtype=dtype)
+        segment_weights = segment_weights / segment_len.clamp_min(1).to(dtype)[:, :, None]
+
+        # L < num_latent 时无法严格分成 num_latent 个非空且不重叠的段。
+        # 这类样本在 loss 中整体跳过，避免重复 token 或伪造 target。
+        valid_sample = valid_len >= num_latent
+        return segment_weights, segment_len, valid_sample
 
     def forward(
         self,
@@ -204,143 +252,89 @@ class LearnableContrastiveAligner(nn.Module):
 
         Returns:
             loss: 对比损失
-            attn_weights: attention权重 [batch, num_latent, cot_len]
+            segment_weights: 固定分段的 mean-pooling 权重
+                [batch, num_latent, cot_len]
         """
+        if student_latents.ndim != 3 or teacher_cot_hiddens.ndim != 3:
+            raise ValueError(
+                "student_latents and teacher_cot_hiddens must be rank-3 tensors; "
+                f"got {tuple(student_latents.shape)} and {tuple(teacher_cot_hiddens.shape)}"
+            )
+
         batch_size = student_latents.shape[0]
         num_latent = student_latents.shape[1]
+        if batch_size != teacher_cot_hiddens.shape[0]:
+            raise ValueError(
+                "student/teacher batch sizes must match; "
+                f"got {batch_size} and {teacher_cot_hiddens.shape[0]}"
+            )
+        if num_latent != self.num_latent:
+            raise ValueError(
+                f"expected {self.num_latent} student latents, got {num_latent}"
+            )
+        if student_latents.shape[-1] != self.dim or teacher_cot_hiddens.shape[-1] != self.dim:
+            raise ValueError(
+                f"student/teacher hidden size must be {self.dim}; got "
+                f"{student_latents.shape[-1]} and {teacher_cot_hiddens.shape[-1]}"
+            )
 
-        # ========== 1. 投影到对比空间 ==========
-        student_proj = self.student_proj(student_latents)  # [batch, num_latent, dim]
-        teacher_proj = self.teacher_proj(teacher_cot_hiddens)  # [batch, cot_len, dim]
+        cot_len = teacher_cot_hiddens.shape[1]
+        if teacher_cot_mask is None:
+            teacher_cot_mask = torch.ones(
+                (batch_size, cot_len),
+                dtype=torch.bool,
+                device=teacher_cot_hiddens.device,
+            )
+        elif teacher_cot_mask.shape != (batch_size, cot_len):
+            raise ValueError(
+                "teacher_cot_mask must match [batch, cot_len]; "
+                f"expected {(batch_size, cot_len)}, got {tuple(teacher_cot_mask.shape)}"
+            )
 
-        # ========== 2. 计算attention权重 ==========
-        # 用student作为query，teacher作为key
-        q = self.attn_query(student_proj)  # [batch, num_latent, dim]
-        k = self.attn_key(teacher_proj)  # [batch, cot_len, dim]
-
-        # attention logits/softmax 使用 fp32，避免 bf16/fp16 下 q·k 或 softmax
-        # 精度不足。输出权重在与 value 相乘前再转回模型 dtype。
-        with torch.autocast(device_type=q.device.type, enabled=False):
-            attn_scores = torch.matmul(q.float(), k.float().transpose(-1, -2)) / (self.dim ** 0.5)
-        # [batch, num_latent, cot_len]
-
-        # mask padding
-        if teacher_cot_mask is not None:
-            mask = teacher_cot_mask.unsqueeze(1)  # [batch, 1, cot_len]
-            valid_rows = teacher_cot_mask.any(dim=-1).view(batch_size, 1, 1)
-            attn_scores = attn_scores.masked_fill(~mask, float("-inf"))
-            # softmax(all -inf) 会产生 NaN；空 CoT 行先置零，稍后其权重和
-            # logits 会被显式清零/过滤。
-            attn_scores = torch.where(valid_rows, attn_scores, torch.zeros_like(attn_scores))
-
-        attn_weights = torch.softmax(attn_scores, dim=-1)  # [batch, num_latent, cot_len]
-        if teacher_cot_mask is not None:
-            attn_weights = attn_weights * mask
-
-        # ========== 3. 得到对齐后的teacher表示 ==========
-        aligned_teacher = torch.matmul(attn_weights.to(teacher_proj.dtype), teacher_proj)
+        # ========== 1. 构造从前到后的固定 CoT 分段 ==========
+        segment_weights, _, valid_sample = self._build_segment_weights(
+            teacher_cot_mask=teacher_cot_mask,
+            num_latent=num_latent,
+            dtype=teacher_cot_hiddens.dtype,
+        )
+        # 分段均值在 fp32 中累加，避免长 CoT 在 bf16/fp16 下丢失精度；
+        # 进入 teacher projection 前再转回模型 dtype。
+        with torch.autocast(device_type=teacher_cot_hiddens.device.type, enabled=False):
+            teacher_segments = torch.matmul(
+                segment_weights.float(),
+                teacher_cot_hiddens.float(),
+            )
+        teacher_segments = teacher_segments.to(teacher_cot_hiddens.dtype)
         # [batch, num_latent, dim]
 
-        # ========== 4. 计算对比损失 ==========
-        # 归一化特征
+        # ========== 2. 投影到对比空间 ==========
+        student_proj = self.student_proj(student_latents)  # [batch, num_latent, dim]
+        teacher_proj = self.teacher_proj(teacher_segments)  # [batch, num_latent, dim]
+
+        # ========== 3. 计算固定对角 InfoNCE ==========
         with torch.autocast(device_type=student_proj.device.type, enabled=False):
             student_normalized = F.normalize(student_proj.float(), dim=-1, eps=1e-6)
-            aligned_normalized = F.normalize(aligned_teacher.float(), dim=-1, eps=1e-6)
-
-            # --- 正例相似度：(student_i, aligned_teacher_i)
-            pos_sims = (student_normalized * aligned_normalized).sum(dim=-1)
-            # [batch, num_latent]
-
-            # --- 负例相似度：
-            # 负例1: student_i 和其他位置的aligned_teacher_j (j != i)
-            # 计算所有pair的相似度
-            all_sim = torch.matmul(student_normalized, aligned_normalized.transpose(-1, -2))
+            teacher_normalized = F.normalize(teacher_proj.float(), dim=-1, eps=1e-6)
+            similarity = torch.matmul(
+                student_normalized,
+                teacher_normalized.transpose(-1, -2),
+            )
+            logits = similarity / self.temperature
         # [batch, num_latent, num_latent]
 
-        # 去掉对角线（正例）
-        mask = ~torch.eye(num_latent, dtype=torch.bool, device=all_sim.device)
-        mask = mask.unsqueeze(0).expand(batch_size, -1, -1)
-        neg_sims_cross = all_sim.masked_select(mask).view(batch_size, num_latent, num_latent - 1)
-
-        # 负例2: student_i 和teacher的其他位置
-        # 重新计算student对teacher各个位置的相似度
-        with torch.autocast(device_type=teacher_proj.device.type, enabled=False):
-            teacher_normalized = F.normalize(teacher_proj.float(), dim=-1, eps=1e-6)
-            teacher_sim = torch.matmul(student_normalized, teacher_normalized.transpose(-1, -2))
-        # [batch, num_latent, cot_len]
-
-        # 采样一些低 attention 的有效 CoT 位置作为负例。
-        # 不能直接对 -attn_weights 做 topk：padding 的 attention 恒为 0，
-        # 会被优先选中，导致模型把伪造的 padding hidden 当成 teacher 负例。
-        num_neg_teacher = min(5, teacher_sim.shape[-1] - 1)
-        if num_neg_teacher > 0:
-            if teacher_cot_mask is not None:
-                valid_teacher_mask = teacher_cot_mask.unsqueeze(1).expand(-1, num_latent, -1)
-                neg_rank_scores = attn_weights.masked_fill(
-                    ~valid_teacher_mask,
-                    torch.finfo(attn_weights.dtype).max,
-                )
-                _, neg_indices = torch.topk(
-                    neg_rank_scores,
-                    k=num_neg_teacher,
-                    dim=-1,
-                    largest=False,
-                )
-            else:
-                _, neg_indices = torch.topk(-attn_weights, k=num_neg_teacher, dim=-1)
-
-            neg_sims_teacher = teacher_sim.gather(-1, neg_indices)
-
-            if teacher_cot_mask is not None:
-                # 每个样本至少保留一个有效 teacher 位置作为非负例；当有效
-                # CoT 长度不足时，用 -inf 屏蔽 topk 补齐出来的槽位。
-                valid_neg_count = (teacher_cot_mask.sum(dim=-1) - 1).clamp(
-                    min=0,
-                    max=num_neg_teacher,
-                )
-                neg_rank = torch.arange(num_neg_teacher, device=teacher_sim.device)
-                neg_valid_mask = neg_rank.view(1, 1, -1) < valid_neg_count.view(-1, 1, 1)
-                neg_sims_teacher = neg_sims_teacher.masked_fill(~neg_valid_mask, float("-inf"))
-
-            # 合并两类负例
-            neg_sims = torch.cat([neg_sims_cross, neg_sims_teacher], dim=-1)
-        else:
-            neg_sims = neg_sims_cross
-
-        # --- InfoNCE loss (log-sum-exp 稳定版) ---
-        # 把正例放在 index 0，负例接在后面，构造 logits，目标标签恒为 0。
-        # F.cross_entropy 内部使用 log_softmax(=log-sum-exp)，天然数值稳定，
-        # 避免手写 exp()/log() 在低温或 bf16 下溢出为 inf/nan。
-        logits = torch.cat([pos_sims.unsqueeze(-1), neg_sims], dim=-1) / self.temperature
-        # [batch, num_latent, 1 + num_neg]
-        logits = logits.reshape(-1, logits.shape[-1])  # [(batch*num_latent), 1+num_neg]
-
-        # 保护：过滤掉 teacher CoT 全为 padding 的样本（valid_cot_len=0），
-        # 它们的 aligned_teacher 来自全 mask 行的伪均匀分布，会污染对比损失。
-        if teacher_cot_mask is not None:
-            valid_rows = teacher_cot_mask.any(dim=-1)  # [batch] True=该样本有有效 CoT
-            row_keep = valid_rows.unsqueeze(-1).expand(batch_size, num_latent).reshape(-1)
-            logits = logits[row_keep]
+        # 仅保留能严格分成 num_latent 个非空段的样本。
+        logits = logits[valid_sample]
 
         if logits.shape[0] == 0:
-            # 整个 batch 都没有有效 CoT（极端情况），返回 0 损失并让全部
-            # aligner 参数留在梯度图中，避免 DDP 把它们误判为 unused。
-            loss = (student_proj.sum() + teacher_proj.sum() + q.sum() + k.sum()) * 0.0
+            # 整个 batch 都无法严格分段时返回 0，同时让投影层留在梯度图中，
+            # 避免 DDP 把它们误判为 unused parameters。
+            loss = (student_proj.sum() + teacher_proj.sum()) * 0.0
         else:
-            targets = torch.zeros(logits.shape[0], dtype=torch.long, device=logits.device)
-            loss = F.cross_entropy(logits, targets)
+            targets = torch.arange(num_latent, dtype=torch.long, device=logits.device)
+            targets = targets.unsqueeze(0).expand(logits.shape[0], -1).reshape(-1)
+            loss = F.cross_entropy(logits.reshape(-1, num_latent), targets)
 
-        # ========== 5. 稀疏性损失：让attention更集中 ==========
-        # 注意方向：sparsity_loss = entropy.mean()，最小化它会让 attention 更 sharp。
-        # 当前问题是 attention 快速塌缩(entropy->0)，因此默认不启用(sparsity_factor=0)。
-        # 若需缓解“均匀塌缩”可设正系数；若需缓解“单点塌缩”应改用负系数(奖励熵)。
-        total_loss = loss
-        if self.sparsity_factor != 0.0:
-            entropy = -(attn_weights * torch.log(attn_weights + 1e-9)).sum(dim=-1)
-            sparsity_loss = entropy.mean()
-            total_loss = loss + self.sparsity_factor * sparsity_loss
-
-        return total_loss, attn_weights
+        return loss, segment_weights
 
 
 def get_align_loss_weight(
@@ -452,7 +446,7 @@ class CODI(torch.nn.Module):
             # Convert to same dtype as main model
             self.prj.to(dtype=(torch.float16 if training_args.bf16 is False else torch.bfloat16))
 
-        # ===== Learnable Contrastive 对齐模块 =====
+        # ===== 固定 CoT 分段的对比对齐模块 =====
         self.use_cross_attn_align = training_args.use_cross_attn_align
         if self.use_cross_attn_align:
             self.contrastive_aligner = LearnableContrastiveAligner(
@@ -526,7 +520,23 @@ class CODI(torch.nn.Module):
             print(
                 f"Loading from the pretrained checkpoint: {self.training_args.restore_from}..."
             )
-            state_dict = load_file(self.training_args.restore_from)
+            state_dict = dict(load_file(self.training_args.restore_from))
+            # 旧版 aligner 包含可学习 attention query/key。固定分段版不再
+            # 使用这些参数；精确移除旧 key，其余权重仍保持 strict load。
+            legacy_attention_keys = [
+                key for key in state_dict
+                if ".contrastive_aligner.attn_query." in key
+                or ".contrastive_aligner.attn_key." in key
+                or key.startswith("contrastive_aligner.attn_query.")
+                or key.startswith("contrastive_aligner.attn_key.")
+            ]
+            for key in legacy_attention_keys:
+                state_dict.pop(key)
+            if legacy_attention_keys:
+                print(
+                    "Ignoring legacy learnable-attention parameters: "
+                    f"{len(legacy_attention_keys)} tensors."
+                )
             self.load_state_dict(state_dict)
             print(f"Finished loading from {self.training_args.restore_from}")
 
@@ -609,7 +619,6 @@ class CODI(torch.nn.Module):
             ref_answer_position = ref_answer_position - 1
 
         # ===== 收集 Student 隐层状态用于对齐 =====
-        student_latent_inputs = []  # z_i: latent 输入 embedding
         student_latent_hiddens = []  # h^S_{z_i}: 指定层的隐状态
 
         num_latent = self.num_latent
@@ -618,9 +627,6 @@ class CODI(torch.nn.Module):
                 # Implicit CoT generation
                 outputs = self.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
                 past_key_values = outputs.past_key_values
-
-                # 保存 latent 输入 embedding (用于 cross-attention query)
-                student_latent_inputs.append(latent_embd.squeeze(1))  # [batch, dim]
 
                 # 保存指定层的隐状态 (用于对齐)
                 if self.use_cross_attn_align:
@@ -680,14 +686,13 @@ class CODI(torch.nn.Module):
                         ce_loss = self.loss_fct(effective_logits, target_ids)
                         ce_loss_total += ce_loss
 
-        # ===== Learnable Contrastive 对齐损失 =====
+        # ===== 固定 CoT 分段的对比对齐损失 =====
         if self.use_cross_attn_align and ref_cot_start is not None and len(student_latent_hiddens) > 0:
             # ===== 两阶段对齐调度 =====
-            # Phase 1 (step < align_warmup_steps): detach 主干，align loss 只训练 aligner，
-            #          让 aligner 先学出稳定、非塌缩的对齐目标，且完全不扰动主干（不会崩）。
+            # Phase 1 (step < align_warmup_steps): detach 主干，align loss 只训练
+            #          student/teacher projection heads，不扰动主干。
             # Phase 2 (step >= align_warmup_steps): 接通主干（不 detach），让 align loss 塑形主干；
-            #          可选地冻结 aligner，堵死“塌缩 attention 走捷径”这条路，
-            #          迫使对比压力真正传导到主干（推理态受益的关键）。
+            #          可选地冻结 projection heads，使对比压力只传导到主干。
             in_warmup = (
                 self.align_warmup_steps > 0
                 and step is not None
@@ -744,39 +749,44 @@ class CODI(torch.nn.Module):
             teacher_cot_hiddens = torch.stack(padded_teacher_hiddens, dim=0)  # [batch, max_cot_len, dim]
             teacher_cot_mask = torch.stack(padded_teacher_mask, dim=0)  # [batch, max_cot_len]
 
-            # 3. Learnable Contrastive 对齐
-            align_loss, attn_weights = self.contrastive_aligner(
+            # 3. 固定分段的对比对齐
+            align_loss, segment_weights = self.contrastive_aligner(
                 student_latents=student_hiddens,
                 teacher_cot_hiddens=teacher_cot_hiddens.detach(),
                 teacher_cot_mask=teacher_cot_mask
             )
             align_loss_raw = align_loss
 
-            # ===== 诊断: 每 500 步打印 attention 权重的熵和 top-3 关注位置 =====
-            # 用于判断 attention 是否退化 (模式A: 都关注同一位置 / 模式B: 均匀分布)
+            # ===== 诊断: 每 500 步打印第一个样本的确定性分段 =====
             if step is not None and step % 500 == 0:
                 with torch.no_grad():
-                    # 取 batch 中第一个样本的 attention: [num_latent, cot_len]
-                    aw = attn_weights[0].float()
-                    valid_len = int(teacher_cot_mask[0].sum().item())  # 该样本有效 CoT 长度
+                    sw = segment_weights[0].float()  # [num_latent, cot_len]
+                    valid_len = int(teacher_cot_mask[0].sum().item())
+                    sample0_used = valid_len >= self.num_latent
+                    skipped_samples = int(
+                        (teacher_cot_mask.sum(dim=-1) < self.num_latent).sum().item()
+                    )
 
-                    # 每个 latent 的注意力熵 (越大越接近均匀分布)
-                    entropy = -(aw * torch.log(aw + 1e-9)).sum(dim=-1)  # [num_latent]
-                    # 归一化熵 (除以 log(valid_len), 便于跨样本比较, 范围 ~[0,1])
-                    norm_factor = math.log(valid_len) if valid_len > 1 else 1.0
-                    norm_entropy = entropy / norm_factor
-
-                    # 每个 latent 最关注的 top-3 CoT 位置及其权重
-                    k = min(3, aw.shape[-1])
-                    topk_vals, topk_idx = torch.topk(aw, k=k, dim=-1)  # [num_latent, k]
-
-                    print(f"[ATTN] step={step}, valid_cot_len={valid_len}")
-                    print(f"[ATTN]   entropy(per-latent)      = {[round(x, 3) for x in entropy.tolist()]}")
-                    print(f"[ATTN]   norm_entropy(per-latent)  = {[round(x, 3) for x in norm_entropy.tolist()]}")
-                    for li in range(aw.shape[0]):
-                        idx_str = topk_idx[li].tolist()
-                        val_str = [round(x, 3) for x in topk_vals[li].tolist()]
-                        print(f"[ATTN]   latent{li}: top{k}_pos={idx_str}, top{k}_weight={val_str}")
+                    print(
+                        f"[SEGMENT_ALIGN] step={step}, valid_cot_len={valid_len}, "
+                        f"sample0_used={sample0_used}, "
+                        f"skipped_short_cot={skipped_samples}/{batch_size}"
+                    )
+                    if not sample0_used:
+                        print(
+                            "[SEGMENT_ALIGN]   sample0 excluded from alignment loss: "
+                            "valid_cot_len < num_latent"
+                        )
+                    else:
+                        for li in range(sw.shape[0]):
+                            positions = torch.nonzero(sw[li] > 0, as_tuple=False).flatten()
+                            start = int(positions[0].item())
+                            end = int(positions[-1].item()) + 1
+                            token_weight = float(sw[li, positions[0]].item())
+                            print(
+                                f"[SEGMENT_ALIGN]   latent{li}: cot_pos=[{start}, {end}), "
+                                f"segment_len={positions.numel()}, token_weight={token_weight:.6f}"
+                            )
 
             # 4. 权重调度
             if step_ratio is not None:
@@ -788,8 +798,8 @@ class CODI(torch.nn.Module):
                 )
             else:
                 align_weight = self.align_loss_factor
-            phase = "P1(detach-backbone,train-aligner)" if detach_backbone else (
-                "P2(train-backbone,freeze-aligner)" if freeze_aligner else "P2(train-backbone+aligner)"
+            phase = "P1(detach-backbone,train-projections)" if detach_backbone else (
+                "P2(train-backbone,freeze-projections)" if freeze_aligner else "P2(train-backbone+projections)"
             )
             print(f"step={step}, align_weight={align_weight}, align_phase={phase}")
 
