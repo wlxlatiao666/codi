@@ -1,0 +1,27 @@
+scripts/train_gpt2_gsm8k-aug-contrastive.sh
+  s_cd2e53cb97eeb8::t_f166acbc02214d 2,4,7,13-14
+src/model.py
+  s_cd2e53cb97eeb8::t_9ef984d5a16c32 121-125,127,131-132,156-162,164,168-172,194-239,255-256,258-263,266-279,281-307,310-314,318-323,325-326,329-331,333-335,337,449,523-539,689,692-693,695,752-753,760,763-789,801-802
+tests/test_fixed_segment_aligner.py
+  s_cd2e53cb97eeb8::t_59994f6945896c 1-117
+train.py
+  s_cd2e53cb97eeb8::t_50fa0ae1fef6fa 219,225-228
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "8b733f5dfd5bd1f72a4db1c0273bba4d7d97349c",
+  "prompts": {},
+  "sessions": {
+    "s_cd2e53cb97eeb8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a014c1-7fe7-7bd3-b198-497aa62d3a38",
+        "model": "unknown"
+      },
+      "human_author": "weilongxuan <weilongxuan@bytedance.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
