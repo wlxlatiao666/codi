@@ -21,6 +21,13 @@ import copy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+def _softplus_inv(y: float) -> float:
+    """softplus 的反函数: 给定 y = softplus(x)，返回 x = log(exp(y) - 1)。"""
+    if y <= 0:
+        raise ValueError(f"softplus inverse requires y > 0, got {y}")
+    return float(torch.log(torch.exp(torch.tensor(y)) - 1.0))
+
+
 @dataclass
 class ModelArguments:
     model_name_or_path: str = field(default="mistralai/Mistral-7B-Instruct-v0.2")
@@ -191,20 +198,36 @@ class LearnableContrastiveAligner(nn.Module):
             nn.Linear(dim, dim),
         )
 
-    @staticmethod
+        # ===== 可学习的单调软分段 =====
+        # latent_i 在归一化 CoT 时间轴 [0,1] 上对应一个单调递增的进度中心 c_i，
+        # 由 softplus(raw) 累计和归一化得到，保证 c_0 < c_1 < ... < c_{n-1} = 1。
+        # 初始 raw 取 softplus^{-1}(1/num_latent)，使中心大致等距 (i+1)/num_latent，
+        # 从而贴近旧的等分分段，作为温启动，但边界/长度由梯度自由调整。
+        self.segment_center_raw = nn.Parameter(
+            torch.full((num_latent,), _softplus_inv(1.0 / num_latent))
+        )
+        # 高斯带宽 σ（归一化时间单位）。共享一个标量，避免 per-latent 的
+        # 独立带宽在早期过度放大/缩小；初始 0.25 对应约 1/4 时长，较宽以允许软重叠。
+        self.segment_sigma = nn.Parameter(torch.tensor(_softplus_inv(0.25)))
+
     def _build_segment_weights(
+        self,
         teacher_cot_mask: torch.Tensor,
         num_latent: int,
         dtype: torch.dtype,
     ):
-        """构造固定的等分段 mean-pooling 权重。
+        """构造**可学习单调**的软分段 mean-pooling 权重。
 
-        对有效长度 L，第 i 段的边界为::
+        不再把 CoT 等分成固定、连续、不重叠的段，而是让每个 latent 学一个
+        单调递增的进度中心 ``c_i``（在归一化时间轴 [0,1] 上），每个有效 token
+        按其归一化位置 ``t_j`` 以高斯衰减权重软地归属到最近的 latent，权重在
+        有效 token 上归一化为凸组合。粒度不匹配时多个 latent 会软重叠加到
+        同一区域，σ 自动放宽，因此不再伪造"每 latent 对应一段"的硬目标。
 
-            start = floor(i * L / num_latent)
-            end   = floor((i + 1) * L / num_latent)
+        单调性由 ``cumsum(softplus(raw))`` 归一化保证，故 latents 只会随
+        推理向前推进、不会倒序；位置是归一化的，故长短 CoT 可用同一套参数。
 
-        mask 不必是严格右 padding：分段使用每个有效 token 在 mask 中的顺序。
+        mask 不必是严格右 padding：按每个有效 token 在 mask 中的顺序编号。
         """
         if teacher_cot_mask.ndim != 2:
             raise ValueError(
@@ -217,25 +240,37 @@ class LearnableContrastiveAligner(nn.Module):
         device = teacher_cot_mask.device
 
         valid_len = teacher_cot_mask.sum(dim=-1)  # [batch]
-        latent_idx = torch.arange(num_latent, device=device)
-        segment_start = (valid_len[:, None] * latent_idx[None, :]) // num_latent
-        segment_end = (valid_len[:, None] * (latent_idx[None, :] + 1)) // num_latent
-        segment_len = segment_end - segment_start  # [batch, num_latent]
 
+        # ===== 单调进度中心 c_i (归一化时间轴 [0,1]) =====
+        raw = self.segment_center_raw  # [num_latent]
+        centers = torch.cumsum(F.softplus(raw), dim=-1)
+        centers = centers / centers[-1].clamp_min(1e-6)  # [num_latent], (0,1] 严格递增; c_{n-1}=1
+        sigma = F.softplus(self.segment_sigma).clamp_min(1e-4)  # 标量
+
+        # ===== 每个有效 token 的归一化位置 t_j =====
         # valid_rank 是 token 在各自样本有效 CoT 中的 0-based 序号。
-        valid_rank = teacher_cot_mask.long().cumsum(dim=-1) - 1
-        in_segment = (
-            teacher_cot_mask[:, None, :]
-            & (valid_rank[:, None, :] >= segment_start[:, :, None])
-            & (valid_rank[:, None, :] < segment_end[:, :, None])
-        )
+        valid_rank = teacher_cot_mask.long().cumsum(dim=-1) - 1  # [batch, cot_len]
+        # 位置 / 有效长度: 归一到 (0,1]；无效 token 随后被 mask 清零。
+        t = valid_rank.float() / valid_len.clamp_min(1).float()[:, None]  # [batch, cot_len]
+        # 只对有效 token 有效，无效 token 的 t 置 0（权重会 mask 掉）。
+        t = t * teacher_cot_mask.float()
 
-        segment_weights = in_segment.to(dtype=dtype)
-        segment_weights = segment_weights / segment_len.clamp_min(1).to(dtype)[:, :, None]
+        # ===== 高斯软权重 =====
+        # w[b,i,j] = exp(-(t_j - c_i)^2 / (2 σ^2)) * mask_j
+        # centers:  [num_latent]
+        # t:        [batch, cot_len]
+        diff = (centers[None, :, None] - t[:, None, :]) ** 2  # [batch, num_latent, cot_len]
+        w = torch.exp(-diff / (2.0 * sigma * sigma)) * teacher_cot_mask[:, None, :].float()
 
-        # L < num_latent 时无法严格分成 num_latent 个非空且不重叠的段。
-        # 这类样本在 loss 中整体跳过，避免重复 token 或伪造 target。
-        valid_sample = valid_len >= num_latent
+        # 归一化: 每个 (sample, latent) 行的权重构成凸组合 (sum_j w_ij = 1)。
+        denom = w.sum(dim=-1, keepdim=True).clamp_min(1e-6)
+        segment_weights = w / denom
+
+        # 只保留至少有一个有效 token 的样本（否则目标为空）。
+        # 不再要求 valid_len >= num_latent：软分段允许短 CoT 的所有 token
+        # 共享给临近 latent，故短样本也能得到有界目标。
+        valid_sample = valid_len > 0
+        segment_len = None  # 软分段没有确定的段长，兼容旧调用方传 None
         return segment_weights, segment_len, valid_sample
 
     def forward(
@@ -291,7 +326,7 @@ class LearnableContrastiveAligner(nn.Module):
                 f"expected {(batch_size, cot_len)}, got {tuple(teacher_cot_mask.shape)}"
             )
 
-        # ========== 1. 构造从前到后的固定 CoT 分段 ==========
+        # ========== 1. 构造可学习单调的软分段 ==========
         segment_weights, _, valid_sample = self._build_segment_weights(
             teacher_cot_mask=teacher_cot_mask,
             num_latent=num_latent,
@@ -322,11 +357,11 @@ class LearnableContrastiveAligner(nn.Module):
             logits = similarity / self.temperature
         # [batch, num_latent, num_latent]
 
-        # 仅保留能严格分成 num_latent 个非空段的样本。
+        # 仅保留至少有一个有效 token 的样本。
         logits = logits[valid_sample]
 
         if logits.shape[0] == 0:
-            # 整个 batch 都无法严格分段时返回 0，同时让投影层留在梯度图中，
+            # 整个 batch 的有效 CoT 均为空时返回 0，同时让投影层留在梯度图中，
             # 避免 DDP 把它们误判为 unused parameters。
             loss = (student_proj.sum() + teacher_proj.sum()) * 0.0
         else:
@@ -521,21 +556,23 @@ class CODI(torch.nn.Module):
                 f"Loading from the pretrained checkpoint: {self.training_args.restore_from}..."
             )
             state_dict = dict(load_file(self.training_args.restore_from))
-            # 旧版 aligner 包含可学习 attention query/key。固定分段版不再
-            # 使用这些参数；精确移除旧 key，其余权重仍保持 strict load。
-            legacy_attention_keys = [
+            # 旧版 aligner 的参数不再对应软分段版本：可学习 attention query/key
+            # 已移除，temperature 也从 nn.Parameter 改为固定标量。精确移除这些旧
+            # key，其余权重仍保持 strict load。
+            legacy_keys = [
                 key for key in state_dict
                 if ".contrastive_aligner.attn_query." in key
                 or ".contrastive_aligner.attn_key." in key
                 or key.startswith("contrastive_aligner.attn_query.")
                 or key.startswith("contrastive_aligner.attn_key.")
+                or key == "contrastive_aligner.temperature"
             ]
-            for key in legacy_attention_keys:
+            for key in legacy_keys:
                 state_dict.pop(key)
-            if legacy_attention_keys:
+            if legacy_keys:
                 print(
-                    "Ignoring legacy learnable-attention parameters: "
-                    f"{len(legacy_attention_keys)} tensors."
+                    "Ignoring legacy aligner parameters: "
+                    f"{len(legacy_keys)} tensors."
                 )
             self.load_state_dict(state_dict)
             print(f"Finished loading from {self.training_args.restore_from}")
@@ -757,35 +794,45 @@ class CODI(torch.nn.Module):
             )
             align_loss_raw = align_loss
 
-            # ===== 诊断: 每 500 步打印第一个样本的确定性分段 =====
+            # ===== 诊断: 每 500 步打印软分段的进度中心与带宽 =====
             if step is not None and step % 500 == 0:
                 with torch.no_grad():
+                    # 复用与 _build_segment_weights 相同的单调中心/带宽。
+                    raw = self.contrastive_aligner.segment_center_raw
+                    centers = torch.cumsum(F.softplus(raw), dim=-1)
+                    centers = centers / centers[-1].clamp_min(1e-6)
+                    sigma = F.softplus(self.contrastive_aligner.segment_sigma)
+                    centers = centers.float()
+                    sigma = float(sigma.float())
+
                     sw = segment_weights[0].float()  # [num_latent, cot_len]
                     valid_len = int(teacher_cot_mask[0].sum().item())
-                    sample0_used = valid_len >= self.num_latent
-                    skipped_samples = int(
-                        (teacher_cot_mask.sum(dim=-1) < self.num_latent).sum().item()
+                    empty_samples = int(
+                        (teacher_cot_mask.sum(dim=-1) == 0).sum().item()
                     )
 
                     print(
                         f"[SEGMENT_ALIGN] step={step}, valid_cot_len={valid_len}, "
-                        f"sample0_used={sample0_used}, "
-                        f"skipped_short_cot={skipped_samples}/{batch_size}"
+                        f"sigma={sigma:.4f}, empty_cot={empty_samples}/{batch_size}"
                     )
-                    if not sample0_used:
-                        print(
-                            "[SEGMENT_ALIGN]   sample0 excluded from alignment loss: "
-                            "valid_cot_len < num_latent"
-                        )
+                    if valid_len == 0:
+                        print("[SEGMENT_ALIGN]   sample0 has empty CoT; skipping per-latent breakdown.")
                     else:
                         for li in range(sw.shape[0]):
-                            positions = torch.nonzero(sw[li] > 0, as_tuple=False).flatten()
-                            start = int(positions[0].item())
-                            end = int(positions[-1].item()) + 1
-                            token_weight = float(sw[li, positions[0]].item())
+                            row = sw[li]
+                            # 有效 token 的归一化位置 (复用前向的映射)。
+                            t = teacher_cot_mask[0].float().cumsum(dim=-1) / valid_len
+                            t = t * teacher_cot_mask[0].float()
+                            eff_center = float((row * t).sum() / row.sum().clamp_min(1e-9))
+                            # 占总质量 90% 的软区间 (5th-95th 百分位)。
+                            cum = torch.cumsum(row, dim=-1) / row.sum().clamp_min(1e-9)
+                            lo = int((cum < 0.05).sum().item())
+                            hi = int((cum < 0.95).sum().item()) + 1
+                            active = int((row > 0.05).sum().item())
                             print(
-                                f"[SEGMENT_ALIGN]   latent{li}: cot_pos=[{start}, {end}), "
-                                f"segment_len={positions.numel()}, token_weight={token_weight:.6f}"
+                                f"[SEGMENT_ALIGN]   latent{li}: center={centers[li].item():.4f}, "
+                                f"eff_center={eff_center:.4f}, soft_range=[{lo},{hi}), "
+                                f"active_tokens={active}"
                             )
 
             # 4. 权重调度
