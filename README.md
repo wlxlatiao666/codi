@@ -42,6 +42,11 @@ bash scripts/probe_latent_token.sh
 The output file will be saved in outputs/.
 
 ## Training
+Optional single-path continuation supervision (Experiment B), using the same
+GSM8k data, is documented in [EXPERIMENT_B.md](EXPERIMENT_B.md). Run
+`bash scripts/train_experiment_b.sh`; set `CONTINUATION_LOSS_FACTOR=0` for the
+matched baseline. The feature is disabled by default in `train.py`.
+
 **GSM8k-Aug**
 ```
 bash scripts/train_gpt2_gsm8k-aug.sh # or train_llama1b_gsm8k-aug.sh

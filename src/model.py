@@ -18,6 +18,7 @@ from safetensors.torch import load_file
 from transformers.modeling_outputs import ModelOutput
 import random
 import copy
+from src.continuation import continuation_loss, latent_checkpoint, position_ids_from_mask
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -115,6 +116,9 @@ class TrainingArguments(transformers.TrainingArguments):
     log_full: bool = field(default=False, metadata={"help": "Log all losses."})
     print_loss: bool = field(default=True)
     max_token_num: int = field(default=1000, metadata={"help": "Limit the longest data to avoid OOM."})
+    continuation_loss_factor: float = field(default=0.0, metadata={"help": "Experiment B suffix CE weight; zero disables the auxiliary branch."})
+    continuation_cut_ratio: float = field(default=0.5, metadata={"help": "Fraction of CoT steps to compress; also selects the intermediate latent checkpoint."})
+    continuation_max_tokens: int = field(default=256, metadata={"help": "Skip auxiliary targets exceeding this length; never truncate them."})
 
 def print_trainable_parameters(model):
     trainable_parameters = 0
@@ -219,6 +223,16 @@ class CODI(torch.nn.Module):
 
         # general 
         self.fix_attn_mask = training_args.fix_attn_mask
+        self.continuation_loss_factor = training_args.continuation_loss_factor
+        if self.continuation_loss_factor < 0:
+            raise ValueError("continuation_loss_factor must be nonnegative")
+        self.continuation_checkpoint = None
+        if self.continuation_loss_factor > 0:
+            if not self.fix_attn_mask:
+                raise ValueError("Experiment B requires --fix_attn_mask True; use it for the matched baseline too.")
+            if training_args.continuation_max_tokens < 2:
+                raise ValueError("continuation_max_tokens must be >= 2")
+            self.continuation_checkpoint = latent_checkpoint(self.num_latent, training_args.continuation_cut_ratio)
 
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
@@ -271,14 +285,20 @@ class CODI(torch.nn.Module):
         ref_attention_mask: Optional[torch.LongTensor] = None,
         ref_labels: torch.LongTensor = None,
         step: int = None,
-        step_ratio: float = None
+        step_ratio: float = None,
+        continuation_input_ids: Optional[torch.LongTensor] = None,
+        continuation_labels: Optional[torch.LongTensor] = None,
+        continuation_attention_mask: Optional[torch.LongTensor] = None,
     ):
         if not self.fix_attn_mask:
             ref_attention_mask = None
         
         # Encode the question
         past_key_values = None
-        outputs = self.codi(input_ids=encoder_input_ids, use_cache=True, output_hidden_states=True, past_key_values=past_key_values, attention_mask=encoder_attention_mask)
+        encoder_kwargs = {}
+        if self.fix_attn_mask:
+            encoder_kwargs["position_ids"] = position_ids_from_mask(encoder_attention_mask, encoder_input_ids.size(1))
+        outputs = self.codi(input_ids=encoder_input_ids, use_cache=True, output_hidden_states=True, past_key_values=past_key_values, attention_mask=encoder_attention_mask, **encoder_kwargs)
         past_key_values = outputs.past_key_values
         latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1) # as the next input
         if self.use_prj:
@@ -292,6 +312,10 @@ class CODI(torch.nn.Module):
         # Iterate over the latent embeddings
         distill_loss_total = 0
         ce_loss_total = 0
+        continuation_ce = outputs.logits.new_zeros(())
+        if self.continuation_loss_factor > 0 and any(x is None for x in (
+                continuation_input_ids, continuation_labels, continuation_attention_mask)):
+            raise ValueError("Missing continuation tensors. Use the Experiment B data pipeline in train.py.")
 
         with torch.no_grad():
             ref_outputs = self.codi(input_ids=ref_input_ids, output_hidden_states=True, attention_mask=ref_attention_mask)
@@ -331,11 +355,23 @@ class CODI(torch.nn.Module):
         if self.num_latent != 0:
             for i in range(num_latent):
                 # Implicit CoT generation
-                outputs = self.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values)
+                latent_kwargs = {}
+                if self.fix_attn_mask:
+                    prefix_mask = torch.cat((encoder_attention_mask, encoder_attention_mask.new_ones((encoder_input_ids.size(0), i + 1))), dim=1)
+                    latent_kwargs = {"attention_mask": prefix_mask,
+                                     "position_ids": position_ids_from_mask(prefix_mask, 1)}
+                outputs = self.codi(inputs_embeds=latent_embd, use_cache=True, output_hidden_states=True, past_key_values=past_key_values, **latent_kwargs)
                 past_key_values = outputs.past_key_values
                 latent_embd = outputs.hidden_states[-1][:, -1, :].unsqueeze(1)
                 if self.use_prj:
                     latent_embd = self.prj(latent_embd)
+
+                if self.continuation_loss_factor > 0 and i + 1 == self.continuation_checkpoint:
+                    continuation_ce = continuation_loss(
+                        self.codi, past_key_values, prefix_mask,
+                        continuation_input_ids, continuation_labels,
+                        continuation_attention_mask,
+                    )
 
                 # Calculate the distillation loss
                 if i == num_latent - 1: # the last latent embedding
@@ -347,7 +383,10 @@ class CODI(torch.nn.Module):
                         dynamic_mask = torch.cat((encoder_attention_mask, dynamic_mask, decoder_mask), dim=1)
                         dynamic_mask = dynamic_mask.bool()
                     # Student task's output
-                    outputs = self.codi(inputs_embeds=embds, use_cache=True, output_hidden_states=True, past_key_values=past_key_values, attention_mask=dynamic_mask) 
+                    decoder_kwargs = {}
+                    if self.fix_attn_mask:
+                        decoder_kwargs["position_ids"] = position_ids_from_mask(dynamic_mask, embds.size(1))
+                    outputs = self.codi(inputs_embeds=embds, use_cache=True, output_hidden_states=True, past_key_values=past_key_values, attention_mask=dynamic_mask, **decoder_kwargs)
                     # Teacher task's output
                     ref_outputs = ref_outputs_list[0]
                     
@@ -397,7 +436,7 @@ class CODI(torch.nn.Module):
         if self.print_loss:
             print(f'loss={ce_loss+distill_loss}, ce_loss={ce_loss}, distill_loss={distill_loss}, ce_loss_total={ce_loss_total}, distill_loss_total={distill_loss_total}, ref_ce_loss={ref_ce_loss}')
 
-        loss = ce_loss_total + distill_loss_total + ref_ce_loss
+        loss = ce_loss_total + distill_loss_total + ref_ce_loss + self.continuation_loss_factor * continuation_ce
         
         if ce_loss_total != 0:
             ce_loss_total = ce_loss_total.detach().item()
@@ -406,5 +445,5 @@ class CODI(torch.nn.Module):
         if ref_ce_loss != 0:
             ref_ce_loss = ref_ce_loss.detach().item()
 
-        return {"loss": loss, "logits": logits, "ce_loss": ce_loss_total, "distill_loss": distill_loss_total, "ref_ce_loss": ref_ce_loss}
-
+        return {"loss": loss, "logits": logits, "ce_loss": ce_loss_total, "distill_loss": distill_loss_total, "ref_ce_loss": ref_ce_loss,
+                "continuation_loss": continuation_ce.detach().item()}
