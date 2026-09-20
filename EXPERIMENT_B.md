@@ -68,8 +68,9 @@ NUM_EPOCHS=1 BATCH_SIZE=2 bash scripts/train_experiment_b.sh \
 The script defaults to GPT-2 and bf16 on a compatible CUDA host; set MODEL_NAME,
 DATA_NAME, OUTPUT_DIR, SEED, BATCH_SIZE, NUM_EPOCHS or append training arguments.
 Changing model family requires choosing suitable learning rate/projection size,
-not merely changing MODEL_NAME. Default batch 8 with accumulation 16 gives the
-same single-device effective batch 128 as the original GPT-2 example. The new
+not merely changing MODEL_NAME. Default batch 64 with accumulation 2 matches the
+fixed-batch retraining runs (single-device effective batch 128). Override
+GRADIENT_ACCUMULATION_STEPS together with BATCH_SIZE when needed. The new
 branch adds training time and activation memory; there is no claim of equal
 training FLOPs. Report wall time/memory and compare at matched budgets too.
 
@@ -100,7 +101,26 @@ instead of the removed tokenizer argument on newer Transformers. Non-LoRA constr
 lora_config to None instead of leaving it undefined. Existing teacher double
 forward and model-name-dependent answer-position handling are retained.
 
-## Validation
+## Published retraining updates
+
+The model and Trainer logging changes match the remote retraining source:
+loss components remain detached tensors until a logging boundary, and metrics
+are logged together only when gradients synchronize. This avoids per-microbatch
+device-to-host scalar synchronization without changing the loss objective.
+
+The remote runner seeded initialization before constructing the model. The
+portable train.py now applies --seed at the same stage, before LoRA/projector
+construction, so A and B can start from matching initial parameters. The two
+completed comparisons used seeds 11 and 23, batch 64, accumulation 2, 40 epochs,
+and continuation weights 0 (A) / 0.3 (B). Each variant used one GPU; these batch
+settings are not a two-rank distributed configuration.
+
+This branch publishes the continuation implementation, logging optimization,
+tests and portable launch script. Environment-specific offline download paths,
+worker launchers, model checkpoints and datasets are not included. It is not a
+byte-for-byte archive of the remote experiment runner.
+
+## Validation commands
 
 ```
 python -m pytest -q tests/test_continuation.py

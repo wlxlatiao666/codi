@@ -438,12 +438,8 @@ class CODI(torch.nn.Module):
 
         loss = ce_loss_total + distill_loss_total + ref_ce_loss + self.continuation_loss_factor * continuation_ce
         
-        if ce_loss_total != 0:
-            ce_loss_total = ce_loss_total.detach().item()
-        if distill_loss_total != 0:
-            distill_loss_total = distill_loss_total.detach().item()
-        if ref_ce_loss != 0:
-            ref_ce_loss = ref_ce_loss.detach().item()
-
-        return {"loss": loss, "logits": logits, "ce_loss": ce_loss_total, "distill_loss": distill_loss_total, "ref_ce_loss": ref_ce_loss,
-                "continuation_loss": continuation_ce.detach().item()}
+        return {"loss": loss, "logits": logits,
+                "ce_loss": ce_loss_total.detach(),
+                "distill_loss": distill_loss_total.detach(),
+                "ref_ce_loss": ref_ce_loss.detach(),
+                "continuation_loss": continuation_ce.detach()}

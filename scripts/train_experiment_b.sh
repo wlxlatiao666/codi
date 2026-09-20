@@ -11,8 +11,8 @@ python train.py \
   --data_name "${DATA_NAME:-icot}" \
   --seed "${SEED:-11}" \
   --model_max_length 512 \
-  --per_device_train_batch_size "${BATCH_SIZE:-8}" \
-  --gradient_accumulation_steps 16 \
+  --per_device_train_batch_size "${BATCH_SIZE:-64}" \
+  --gradient_accumulation_steps "${GRADIENT_ACCUMULATION_STEPS:-2}" \
   --bf16 True \
   --num_train_epochs "${NUM_EPOCHS:-40}" \
   --learning_rate 3e-3 \

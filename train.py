@@ -54,15 +54,14 @@ class CustomTrainer(Trainer):
         outputs = model(**inputs)
         loss = outputs["loss"]
         #"ce_loss": ce_loss_total, "mse_loss": mse_loss_total, "ref_ce_loss": ref_ce_loss
-        if step % self.args.logging_steps == 0:
-            self.log({"loss": loss.item(), "ce_loss": outputs["ce_loss"], "distill_loss": outputs["distill_loss"], "ref_ce_loss": outputs["ref_ce_loss"],
+        if step % self.args.logging_steps == 0 and self.accelerator.sync_gradients:
+            self.log({"loss": loss.detach(), "ce_loss": outputs["ce_loss"], "distill_loss": outputs["distill_loss"], "ref_ce_loss": outputs["ref_ce_loss"],
                       "continuation_loss": outputs.get("continuation_loss", 0.0)})
         return (loss, outputs) if return_outputs else loss
 
     def log(self, logs, start_time=None):
         if self.state.global_step is not None:
-            for k, v in logs.items():
-                super().log({k: v})
+            super().log({k: v.item() if isinstance(v, torch.Tensor) else v for k, v in logs.items()})
 
 def _tokenize_fn(strings: Sequence[str], tokenizer: transformers.PreTrainedTokenizer) -> Dict:
     """Tokenize a list of strings."""
@@ -115,6 +114,9 @@ def extract_answer_number(sentence: str) -> float:
 def train():
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
+    # Seed projector/LoRA initialization before constructing the model. The
+    # remote retraining runner applied the same seed before entering train().
+    transformers.set_seed(training_args.seed)
     if training_args.continuation_loss_factor > 0 and "icot" not in (data_args.data_name or ""):
         raise ValueError("Experiment B currently supports icot (GSM8k-Aug) and icot-full (GSM8k-Aug-NL).")
 
