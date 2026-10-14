@@ -1,0 +1,122 @@
+{
+  "official_commit": "d1d56afbe705cfcbf5911b588da6c3083825598d",
+  "historical_source": "attention-aligned-20261012/source",
+  "core_sha256": {
+    "train.py": "aff8a63996aec2cef8c2679e21fb67e3109fded309ee5423b2c101a53d7d180a",
+    "src/model.py": "a88d469850b29ebc850bf89f1d86e78e27ae4b2376a8dc9572d70cac5f322349",
+    "src/continuation.py": "1292fcb06b11c761e79fb4c7808bf0400a5367a2eadc8e8d8169d74ec0d57c7b",
+    "src/search_data.py": "fc199574fc3cf52c5f214d548ab957477256e031c2a8d92bab4b231cf6087309"
+  },
+  "training_reference": {
+    "method": "codi",
+    "official_base_commit": "d1d56afbe705cfcbf5911b588da6c3083825598d",
+    "official_source_clean": true,
+    "model_file_sha256": "a88d469850b29ebc850bf89f1d86e78e27ae4b2376a8dc9572d70cac5f322349",
+    "train_file_sha256": "aff8a63996aec2cef8c2679e21fb67e3109fded309ee5423b2c101a53d7d180a",
+    "main_data_sha256": "4e3a27e14588a038ec501b9981b15da14c3520d8e14e60d3f133b9681dae4176",
+    "train_samples": 383368,
+    "max_steps": 119840,
+    "seed": 11,
+    "batch": 64,
+    "accumulation": 2,
+    "learning_rate": 0.003,
+    "fix_attn_mask": false,
+    "explain_loss_factor": 1.0,
+    "scheduler_horizon_epochs": 40,
+    "global_step": 0,
+    "trainable_parameters": 20057088,
+    "initial_state_sha256": "7756126d7ee21518de4060ff7df63400219a5ac1e0e46dfa852a8a13a659ec16",
+    "shared_initial_state_sha256": "7756126d7ee21518de4060ff7df63400219a5ac1e0e46dfa852a8a13a659ec16",
+    "initialization_policy": "seed11 before official constructor; official order unchanged",
+    "shared_initialization_matches_continuation": true
+  },
+  "cache_sha256": {
+    "codi": "d1206fe4baf8b7139a0296f5df8ffd3572e8b8664e2adea035c6aa6730a371bf",
+    "sim": "d1206fe4baf8b7139a0296f5df8ffd3572e8b8664e2adea035c6aa6730a371bf",
+    "continuation": "ff36bb4cf5fdba540b9c4106871b81a40151d17ea312809d46b3f25f1aa6ab36"
+  },
+  "protocol": {
+    "purpose": "Method comparison on common official SIM-CoT CODI attention and position semantics",
+    "worker": 4387333,
+    "official_commit": "d1d56afbe705cfcbf5911b588da6c3083825598d",
+    "gpu_assignment": {
+      "0": "codi",
+      "1": "codi+sim-cot",
+      "2": "fixed-pair continuation",
+      "3": "serialized evaluation"
+    },
+    "common": {
+      "model": "gpt2",
+      "seed": 11,
+      "epochs": 40,
+      "updates": 119840,
+      "training_samples": 383368,
+      "microbatch": 64,
+      "gradient_accumulation": 2,
+      "learning_rate": 0.003,
+      "scheduler": "cosine",
+      "warmup_ratio": 0.03,
+      "weight_decay": 0.1,
+      "max_grad_norm": 2,
+      "lora_rank": 128,
+      "lora_alpha": 32,
+      "lora_dropout": 0.1,
+      "latent_steps": 6,
+      "projector_dim": 768,
+      "bf16": true,
+      "teacher_include_last_cot": false
+    },
+    "attention_position": {
+      "fix_attn_mask": false,
+      "encoder": "left padding with attention mask; implicit physical positions",
+      "teacher": "right padding; no attention mask; ignored padding labels",
+      "latent": "no explicit attention mask or position_ids",
+      "answer": "no explicit attention mask or position_ids",
+      "continuation": "same cached-decoding semantics as answer; padding labels ignored"
+    },
+    "continuation": {
+      "weight": 0.3,
+      "pairs": [
+        [
+          3,
+          0.3333333333333333
+        ],
+        [
+          4,
+          0.3333333333333333
+        ],
+        [
+          5,
+          0.6666666666666666
+        ]
+      ],
+      "sampling": "random.Random(seed + 1000003 * optimizer_step).randrange(3); shared across accumulation microbatches",
+      "targets": "reuse exact historical random-cut dataset.pt; final CoT step removed",
+      "eligible_samples": 177390,
+      "cache_fork": "clone without detach",
+      "rng": "historical standard RNG consumption; no auxiliary RNG isolation"
+    },
+    "sim": {
+      "explain_loss_factor": 1.0,
+      "decoder": "official independent GPT-2 decoder",
+      "step_padding": "preserve official implementation"
+    },
+    "evaluation": {
+      "validation_samples": 512,
+      "test_samples": 1319,
+      "batch_size": 128,
+      "max_answer_tokens": 256,
+      "greedy": true,
+      "every_epochs": 4,
+      "test_checkpoint": "final epoch40",
+      "training_attention_position_semantics": true
+    },
+    "checkpoint": {
+      "save_each_epoch": true,
+      "keep_latest": 2,
+      "optimizer_and_rng_saved": true
+    },
+    "scope": "Attention/position alignment only. Existing data split and torch2.6/transformers4.52.4/peft0.15.2/accelerate1.7 environment retained; not a complete paper-environment reproduction.",
+    "document_url": "https://chatgpt.com/space/page_5f64b651818081918319932e2ef970ee"
+  }
+}

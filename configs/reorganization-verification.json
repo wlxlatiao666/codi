@@ -1,0 +1,124 @@
+{
+  "date": "2026-10-14",
+  "core_files_byte_identical_to_historical": true,
+  "launcher_arguments_identical_after_path_normalization": true,
+  "cpu_tests_passed": 5,
+  "model_parity": {
+    "codi": {
+      "deterministic_algorithms_for_verification_only": true,
+      "initial_weights_equal": true,
+      "forward_and_gradients_bitwise_equal": true,
+      "rng_state_equal": true,
+      "adamw_update_equal": true,
+      "gradient_tensors": 102
+    },
+    "sim": {
+      "deterministic_algorithms_for_verification_only": true,
+      "initial_weights_equal": true,
+      "forward_and_gradients_bitwise_equal": true,
+      "rng_state_equal": true,
+      "adamw_update_equal": true,
+      "gradient_tensors": 250
+    },
+    "continuation-k3": {
+      "deterministic_algorithms_for_verification_only": true,
+      "initial_weights_equal": true,
+      "forward_and_gradients_bitwise_equal": true,
+      "rng_state_equal": true,
+      "adamw_update_equal": true,
+      "gradient_tensors": 102
+    },
+    "continuation-k4": {
+      "deterministic_algorithms_for_verification_only": true,
+      "initial_weights_equal": true,
+      "forward_and_gradients_bitwise_equal": true,
+      "rng_state_equal": true,
+      "adamw_update_equal": true,
+      "gradient_tensors": 102
+    },
+    "continuation-k5": {
+      "deterministic_algorithms_for_verification_only": true,
+      "initial_weights_equal": true,
+      "forward_and_gradients_bitwise_equal": true,
+      "rng_state_equal": true,
+      "adamw_update_equal": true,
+      "gradient_tensors": 102
+    }
+  },
+  "evaluation_parity": {
+    "codi": {
+      "gsm8k-aug": {
+        "all_predictions_identical": true,
+        "total": 1319,
+        "correct": 541
+      },
+      "gsm-hard": {
+        "all_predictions_identical": true,
+        "total": 1319,
+        "correct": 123
+      },
+      "multi-arith-full": {
+        "all_predictions_identical": true,
+        "total": 600,
+        "correct": 558
+      },
+      "svamp": {
+        "all_predictions_identical": true,
+        "total": 1000,
+        "correct": 416
+      }
+    },
+    "sim": {
+      "gsm8k-aug": {
+        "all_predictions_identical": true,
+        "total": 1319,
+        "correct": 552
+      },
+      "gsm-hard": {
+        "all_predictions_identical": true,
+        "total": 1319,
+        "correct": 131
+      },
+      "multi-arith-full": {
+        "all_predictions_identical": true,
+        "total": 600,
+        "correct": 556
+      },
+      "svamp": {
+        "all_predictions_identical": true,
+        "total": 1000,
+        "correct": 420
+      }
+    },
+    "continuation": {
+      "gsm8k-aug": {
+        "all_predictions_identical": true,
+        "total": 1319,
+        "correct": 555
+      },
+      "gsm-hard": {
+        "all_predictions_identical": true,
+        "total": 1319,
+        "correct": 121
+      },
+      "multi-arith-full": {
+        "all_predictions_identical": true,
+        "total": 600,
+        "correct": 560
+      },
+      "svamp": {
+        "all_predictions_identical": true,
+        "total": 1000,
+        "correct": 423
+      }
+    }
+  },
+  "default_gpu_diagnostic": {
+    "initialization_and_forward_exact": true,
+    "continuation_k3_gradient_max_abs_difference": 0.00390625,
+    "continuation_k3_after_adamw_max_abs_difference": 0.005995169281959534,
+    "deterministic_verification_resolved_differences": true,
+    "training_determinism_settings_changed": false
+  },
+  "full_40_epoch_training_repeated": false
+}

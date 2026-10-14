@@ -74,7 +74,7 @@ def collate_continuations(instances, pad_token_id):
                 continuation_attention_mask=ids.ne(pad_token_id))
 
 
-def fork_cache(cache):
+def fork_cache(cache, detach=False):
     """Copy cache storage WITHOUT detach: auxiliary gradients reach the rollout.
 
     DynamicCache.update mutates the container. deepcopy fails on non-leaf
@@ -82,9 +82,9 @@ def fork_cache(cache):
     Supports the legacy tuple and DynamicCache interfaces in transformers 4.52.
     """
     if isinstance(cache, (tuple, list)):
-        return tuple(tuple(t.clone() for t in layer) for layer in cache)
+        return tuple(tuple((t.detach() if detach else t).clone() for t in layer) for layer in cache)
     if hasattr(cache, "to_legacy_cache") and hasattr(type(cache), "from_legacy_cache"):
-        return type(cache).from_legacy_cache(fork_cache(cache.to_legacy_cache()))
+        return type(cache).from_legacy_cache(fork_cache(cache.to_legacy_cache(), detach=detach))
     raise TypeError(f"Unsupported cache type for continuation: {type(cache).__name__}")
 
 
@@ -94,21 +94,27 @@ def position_ids_from_mask(mask, current_length):
     return positions[:, -current_length:]
 
 
-def continuation_loss(model, cache, prefix_mask, input_ids, labels, target_mask):
+def continuation_loss(model, cache, prefix_mask, input_ids, labels, target_mask,
+                      detach_cache=False, first_step_mask=None, first_step_weight=1.0):
     """One teacher-forced suffix CE, normalized over valid next-token targets."""
     valid = labels[:, 1:].ne(IGNORE_INDEX)
     if not valid.any():
         return next(model.parameters()).new_zeros(())
-    mask = torch.cat((prefix_mask.bool(), target_mask.bool()), dim=1)
+    # Match official cached-answer semantics: implicit positions, no padding mask.
     outputs = model(
-        input_ids=input_ids, past_key_values=fork_cache(cache),
-        attention_mask=mask,
-        position_ids=position_ids_from_mask(mask, input_ids.size(1)),
+        input_ids=input_ids, past_key_values=fork_cache(cache, detach=detach_cache),
+        attention_mask=None,
         use_cache=True, output_hidden_states=False,
     )
     logits = outputs.logits[:, :-1].contiguous()
-    return F.cross_entropy(
+    token_losses = F.cross_entropy(
         logits.float().reshape(-1, logits.size(-1)),
         labels[:, 1:].contiguous().reshape(-1),
-        ignore_index=IGNORE_INDEX, reduction="sum",
-    ) / valid.sum()
+        ignore_index=IGNORE_INDEX, reduction="none",
+    ).reshape_as(valid)
+    weights = valid.float()
+    if first_step_mask is not None:
+        if first_step_weight <= 0:
+            raise ValueError("first_step_weight must be positive")
+        weights = weights * (1 + (first_step_weight - 1) * first_step_mask[:, 1:].float())
+    return (token_losses * weights).sum() / weights.sum()

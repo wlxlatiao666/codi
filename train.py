@@ -4,7 +4,6 @@ import logging
 import os
 import re
 import random
-from collections import Counter
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Sequence
 import torch
@@ -18,8 +17,7 @@ from math import ceil
 from peft import PeftModel, LoraConfig, TaskType, get_peft_model
 from datasets import load_dataset
 from functools import partial
-from src.continuation import build_continuation, collate_continuations
-
+from tqdm import tqdm
 from src.model import (
     CODI,
     ModelArguments,
@@ -27,16 +25,43 @@ from src.model import (
     TrainingArguments,
     freeze_model
 )
+import json
 
+
+def _to_scalar(x):
+    """Convert Tensor/number/None to python float (mean-reduced if needed)."""
+    import torch
+    if x is None:
+        return None
+    if isinstance(x, torch.Tensor):
+        # detach，转到 float，若多元素则取 mean，再 item()
+        return x.detach().float().mean().item()
+    # 已经是数字的情况
+    return float(x)
+def read_json(file_path):
+    """
+    从指定路径读取JSON文件并返回对应的Python对象。
+    """
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            return data
+    except Exception as e:
+        print(f"读取JSON文件时出错: {e}")
+        return None
 IGNORE_INDEX = -100
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
 class CustomTrainer(Trainer):
-    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
+    def compute_loss(self, model, inputs, num_items_in_batch):
         # Extract the global step from the optimizer
         step = self.state.global_step
+        options = inputs.pop("continuation_options", None)
+        if options is not None:
+            pick = random.Random(self.args.seed + 1000003 * step).randrange(len(options))
+            inputs.update(options[pick])
 
         # Get total training steps
         batch_size = self.args.per_device_train_batch_size
@@ -53,15 +78,28 @@ class CustomTrainer(Trainer):
         # Call the model's forward method
         outputs = model(**inputs)
         loss = outputs["loss"]
+        loss_for_log = loss.detach() if isinstance(loss, torch.Tensor) else loss
+        if step % self.args.logging_steps == 0:
+            logs = {
+                "loss": _to_scalar(loss_for_log),
+                "ce_loss": _to_scalar(outputs.get("ce_loss")),
+                "distill_loss": _to_scalar(outputs.get("distill_loss")),
+                "ref_ce_loss": _to_scalar(outputs.get("ref_ce_loss")),
+                "explain_loss": _to_scalar(outputs.get("explain_loss")),
+                "continuation_loss": _to_scalar(outputs.get("continuation_loss")),
+            }
+            if not hasattr(self, "is_global_zero") or self.is_global_zero:
+                self.log(logs)
         #"ce_loss": ce_loss_total, "mse_loss": mse_loss_total, "ref_ce_loss": ref_ce_loss
-        if step % self.args.logging_steps == 0 and self.accelerator.sync_gradients:
-            self.log({"loss": loss.detach(), "ce_loss": outputs["ce_loss"], "distill_loss": outputs["distill_loss"], "ref_ce_loss": outputs["ref_ce_loss"],
-                      "continuation_loss": outputs.get("continuation_loss", 0.0)})
-        return (loss, outputs) if return_outputs else loss
+        # if step % self.args.logging_steps == 0:
+        #     self.log({"loss": loss.item(), "ce_loss": outputs["ce_loss"], "distill_loss": outputs["distill_loss"], "ref_ce_loss": outputs["ref_ce_loss"],})
+
+        return loss
 
     def log(self, logs, start_time=None):
         if self.state.global_step is not None:
-            super().log({k: v.item() if isinstance(v, torch.Tensor) else v for k, v in logs.items()})
+            for k, v in logs.items():
+                super().log({k: v})
 
 def _tokenize_fn(strings: Sequence[str], tokenizer: transformers.PreTrainedTokenizer) -> Dict:
     """Tokenize a list of strings."""
@@ -114,23 +152,17 @@ def extract_answer_number(sentence: str) -> float:
 def train():
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
-    # Seed projector/LoRA initialization before constructing the model. The
-    # remote retraining runner applied the same seed before entering train().
-    transformers.set_seed(training_args.seed)
-    if training_args.continuation_loss_factor > 0 and "icot" not in (data_args.data_name or ""):
-        raise ValueError("Experiment B currently supports icot (GSM8k-Aug) and icot-full (GSM8k-Aug-NL).")
 
     ##########################
     #       Peft Model       #
     ##########################
-    lora_config = None
     if model_args.lora_init:
         task_type = TaskType.CAUSAL_LM
         if any(name in model_args.model_name_or_path.lower() for name in ["llama", "mistral", "falcon", "qwen"]):
             target_modules = ["q_proj", "k_proj", "v_proj", "o_proj", "up_proj", "down_proj", "gate_proj"]
         elif any(name in model_args.model_name_or_path.lower() for name in ["phi"]):
             target_modules = ["q_proj", "k_proj", "v_proj", "dense", "fc1", "fc2"]
-        elif any(name in model_args.model_name_or_path.lower() for name in ["gpt2"]):
+        elif any(name in model_args.model_name_or_path.lower() for name in ["gpt2", "gsm-cot"]):
             target_modules = ["c_attn", "c_proj", 'c_fc']
         else:
             raise ValueError(f"Only support LLAMA, Mistral, Falcon, Phi-2, but got {model_args.model_name_or_path}.")
@@ -145,7 +177,7 @@ def train():
             init_lora_weights=True,
         )
 
-
+    # import pdb; pdb.set_trace()
     model = CODI(model_args, training_args, lora_config)
     tokenizer = transformers.AutoTokenizer.from_pretrained(
             model_args.model_name_or_path,
@@ -164,12 +196,15 @@ def train():
 
     def get_answer_token_position(tokens, answer_prompts, tokenizer):
         #answer_prompt = torch.tensor([464, 3280, 318, 25])
+        # import pdb; pdb.set_trace()
         try:
             match_indices = (tokens.unfold(0, len(answer_prompts[0]), 1) == answer_prompts[0]).all(dim=1).nonzero(as_tuple=True)[0].item()
             answer_token_id = match_indices + len(answer_prompts[0])
             return answer_token_id
         except Exception:
             breakpoint()
+        
+    # def get_steps_
 
     def preprocess(
         sources: Sequence[str], 
@@ -213,7 +248,7 @@ def train():
         if answer_prompts[0][0] == tokenizer.bos_token_id: # remove the bos
             answer_prompts[0] = answer_prompts[0][1:]
             answer_prompts[1] = answer_prompts[1][1:]
-        
+        # import pdb; pdb.set_trace()
         ref_answer_position = [get_answer_token_position(x, answer_prompts, tokenizer) for i, x in enumerate(ref_input_ids)]
         model_answer_position = [get_answer_token_position(x, answer_prompts, tokenizer) for x in answers_id]
 
@@ -229,21 +264,32 @@ def train():
         QUESTION_DA_PROMPT = "\nAnswer the above question. Answer the final number directly in one number.\n"
         def __init__(self, data_name, raw_data, tokenizer, bot, eot):
             super(SupervisedDataset, self).__init__()
+            cache_path = os.environ["CODI_DATA_CACHE"]
+            self.data_dict = torch.load(cache_path, map_location="cpu", weights_only=False)
+            if training_args.continuation_weight == 0:
+                self.data_dict.pop("continuation_options", None)
+            self.keys = list(self.data_dict)
+            return
             logging.warning("Formatting inputs...")
-
+            
             self.data_name = data_name
             questions, cots, answers = [], [], []
             num_ops_list = []
             operators = ["+", "-", "*", "/"]
 
             token_nums = []
-            for num_iter, example in enumerate(raw_data):
+            # import pdb; pdb.set_trace()
+            raw_data = read_json('/mnt/shared-storage-user/weixilin/MLLM/coconut/data/gsm_train_clean.json')            
+            for num_iter, example in tqdm(enumerate(raw_data)):
+                if 'cot' not in example: 
+                    example['cot'] = example['steps']
+                    example['cot'] = ' '.join(example['cot'])
                 if training_args.exp_mode and num_iter > training_args.exp_data_num:
                     break
                 question = f"{example['question']}"
                 if "icot" in self.data_name and "full" in self.data_name: # icot-full (GSM8k-Aug-NL)
                     # bad data
-                    if example["answer"] is None: # or example["response"] is None:
+                    if example["answer"] is None or example["response"] is None:
                         continue
                     
                     # avoid OOM: remove very long data
@@ -254,19 +300,10 @@ def train():
                     cot = f"{example['cot']}".split(". ")
                     if not (training_args.include_last_cot):
                         cot = cot[:-1]
-
-                    answer = example['answer'].split(' ')[-1]
-                    if not answer[0].isdigit():
-                        continue
-                    answer = f"The answer is: {answer}"
+                    answer = f"The answer is: {example['answer'].split(' ')[-1]}"
                     answer = answer.replace("####", "")
                     questions.append(question)
-                    
-                    if cot:
-                        cot = ". ".join(cot)+".\n"
-                    else:
-                        cot = ""
-                    cots.append(cot)
+                    cots.append(". ".join(cot)+".\n")
                     answers.append(answer)
                 elif "icot" in self.data_name: # icot (GSM8k-Aug)
                     # avoid OOM: remove very long data
@@ -328,36 +365,6 @@ def train():
             logging.warning("Tokenizing inputs... This may take some time...")
 
             self.data_dict = preprocess(questions, cots, answers, tokenizer, bot, eot)
-            if training_args.continuation_loss_factor > 0:
-                continuation_examples = []
-                counts = Counter()
-                config = model.codi.config
-                context_limit = min(training_args.model_max_length, getattr(
-                    config, "max_position_embeddings", getattr(config, "n_positions", training_args.model_max_length)))
-                for idx, (question, cot, answer) in enumerate(zip(questions, cots, answers)):
-                    example, reason = build_continuation(
-                        cot, answer, tokenizer, eot, training_args.remove_eos,
-                        training_args.continuation_cut_ratio, training_args.continuation_max_tokens)
-                    # The official baseline tokenizes each segment with a 256-token
-                    # cap. Do not supervise a suffix derived from an unobserved trace
-                    # or a truncated question. Keep such rows for baseline losses.
-                    if reason == "eligible" and any(len(tokenizer.encode(text)) > 256 for text in (question, cot, answer)):
-                        reason = "baseline_segment_truncated"
-                    if reason == "eligible" and (
-                        len(self.data_dict["encoder_input_ids"][idx]) + model.continuation_checkpoint
-                        + len(example["continuation_input_ids"]) > context_limit):
-                        reason = "context_too_long"
-                    if reason != "eligible":
-                        example = {"continuation_input_ids": torch.tensor([eot]),
-                                   "continuation_labels": torch.tensor([IGNORE_INDEX])}
-                    continuation_examples.append(example)
-                    counts[reason] += 1
-                logging.warning("Experiment B coverage: %s (checkpoint=%s/%s)", dict(counts),
-                                model.continuation_checkpoint, training_args.num_latent)
-                if not counts["eligible"]:
-                    raise ValueError("No eligible continuation examples. Check CoT formatting, lengths, and include_last_cot.")
-                for key in ("continuation_input_ids", "continuation_labels"):
-                    self.data_dict[key] = [example[key] for example in continuation_examples]
             self.keys = list(self.data_dict.keys())
 
 
@@ -398,18 +405,17 @@ def train():
                 ref_attention_mask=ref_input_ids.ne(self.tokenizer.pad_token_id),
                 ref_labels=ref_labels,
             )
-            if "continuation_input_ids" in instances[0]:
-                batch.update(collate_continuations(instances, self.tokenizer.pad_token_id))
+            if "continuation_options" in instances[0]:
+                from src.search_data import collate_options
+                batch["continuation_options"] = collate_options(instances, self.tokenizer.pad_token_id)
             return batch
 
     def make_supervised_data_module(tokenizer, data_args) -> Dict:
         """Make dataset and collator for supervised fine-tuning."""
         logging.warning("Downloading Data")
         if "icot" in data_args.data_name:
-            if 'full' in data_args.data_name:
-                dataset = load_dataset("zen-E/GSM8k-Aug-NL")["train"]
-            else:
-                dataset = load_dataset("zen-E/GSM8k-Aug")["train"]
+            # dataset = load_dataset("zen-E/GSM8k-Aug")["train"]
+            dataset = None
             train_dataset = SupervisedDataset(data_name=data_args.data_name, raw_data=dataset, tokenizer=tokenizer, bot=model.bot_id, eot=model.eot_id)
             data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
             return dict(train_dataset=train_dataset, eval_dataset=None, data_collator=data_collator)
@@ -442,7 +448,7 @@ def train():
     )
 
     data_module = make_supervised_data_module(tokenizer=tokenizer, data_args=data_args)
-    trainer = CustomTrainer(model=model, processing_class=tokenizer, args=training_args, **data_module)
+    trainer = CustomTrainer(model=model, tokenizer=tokenizer, args=training_args, **data_module)
     trainer.train()
 
     # to avoid the error of saving the model
@@ -454,7 +460,7 @@ def train():
     #    trainer.model.codi.base_model.model.model.embed_tokens.weight = torch.nn.Parameter(model.codi.base_model.model.lm_head.weight.clone())
 
     trainer.save_state()
-    trainer.save_model(output_dir=training_args.output_dir)
+    # Final epoch checkpoint already includes model and optimizer.
 
 
 if __name__ == "__main__":

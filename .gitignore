@@ -1,0 +1,14 @@
+# Local experiment archives (actual directory and common alternate spelling)
+/analysis/
+/analyst/
+# Runtime outputs and external assets
+/runs/
+/assets/
+/data/
+/checkpoints/
+/venv/
+/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
