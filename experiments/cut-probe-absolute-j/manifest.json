@@ -1,0 +1,22 @@
+{
+  "sources": [
+    {
+      "directory": "/Users/bytedance/codes/codi/experiments/base-codi-cut-probe-20261020",
+      "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/attention-aligned-20261012/runs/codi/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840",
+      "checkpoint_sha256": "bb10ac1fc738c1779c8a27a7b581f52d371320d383db398d8253b2665db72276",
+      "raw_scores_sha256": "c11aa55ab80773c850f50ba7ea5b9ab394f2522dc07ca7ab86266d78bd248983"
+    },
+    {
+      "directory": "/Users/bytedance/codes/codi/experiments/fixed-codi-cut-probe-20261021",
+      "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/random-disturb-20261015/runs/fixed-control/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840",
+      "checkpoint_sha256": "b411513dff9cc73d8881f58587f47b890a4addd55246b8e4ddbb37a4f9ce1601",
+      "raw_scores_sha256": "0e031d9a07b2bf0bfeedad744876bc000a7f0fedba50fa834af01a445d7eaff7"
+    }
+  ],
+  "reused_existing_exhaustive_forward_scores": true,
+  "j_definition": "number of retained explicit equation steps skipped; predict steps j+1..m plus answer; no gold explicit prefix supplied",
+  "j_range": "1..m-1 proper suffixes; j=0 full-chain and j=m answer-only are outside this probe",
+  "aggregation": "weighted token CE: sum(weight * NLL) / sum(weight * tokens); no 0.3 multiplier",
+  "scopes": "all-lengths uses all m>j; common-m-ge6 keeps same cohort for j1..5; mN fixes chain length",
+  "paired_target_validation": "identical sample IDs, m, j, target token counts, weights; all k0..6 present"
+}

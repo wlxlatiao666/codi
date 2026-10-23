@@ -1,0 +1,9 @@
+{
+  "stage": "complete",
+  "checkpoint": {
+    "epoch": 40.0,
+    "step": 119840,
+    "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/all-cuts-20261020/runs/full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840",
+    "pairs_sixths": "all k=1..6 x all proper suffixes"
+  }
+}

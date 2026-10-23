@@ -6,6 +6,8 @@ import re
 import sys
 import time
 from pathlib import Path
+from eval_routing import route_evaluation
+_eval_gpu_guard = route_evaluation()  # Keep the resource lock until process exit.
 import torch
 from datasets import load_from_disk
 from peft import LoraConfig, TaskType

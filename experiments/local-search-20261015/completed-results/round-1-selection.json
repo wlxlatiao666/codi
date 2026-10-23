@@ -1,0 +1,137 @@
+{
+  "round": 1,
+  "parent_pairs_sixths": [
+    [
+      3,
+      2
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      5,
+      4
+    ]
+  ],
+  "mutation": {
+    "pairs": [
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "slot": 2,
+    "axis": "ratio_sixths",
+    "delta": -1
+  },
+  "decision": {
+    "winner": "child",
+    "net_correct_over_two_snapshots": 21,
+    "required_net_correct": 11,
+    "mean_accuracy_gain": 0.0205078125,
+    "margin": 0.01
+  },
+  "start_audit": {
+    "identical_start_and_first_two_batches": true,
+    "runs": [
+      "round-1-parent",
+      "round-1-child"
+    ],
+    "start_step": 35952,
+    "model_state_sha256": "f5d113a20b9fe7bef63d15c10f5933fa82e3a135954f34d8084556e77299560a"
+  },
+  "metrics": [
+    [
+      {
+        "accuracy": 0.2265625,
+        "correct": 116,
+        "total": 512,
+        "duration_seconds": 1.5442912578582764,
+        "peak_cuda_bytes": 4881846784,
+        "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/random-disturb-20261015/runs/round-1-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-38948",
+        "decoding": "greedy",
+        "latent_steps": 6,
+        "max_answer_tokens": 256,
+        "inference_protocol": "official-style padding positions and cached attention; batch128",
+        "split": "validation",
+        "strict_accuracy": 0.2265625,
+        "truncated": 0
+      },
+      {
+        "accuracy": 0.259765625,
+        "correct": 133,
+        "total": 512,
+        "duration_seconds": 1.440112829208374,
+        "peak_cuda_bytes": 4881846784,
+        "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/random-disturb-20261015/runs/round-1-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-41944",
+        "decoding": "greedy",
+        "latent_steps": 6,
+        "max_answer_tokens": 256,
+        "inference_protocol": "official-style padding positions and cached attention; batch128",
+        "split": "validation",
+        "strict_accuracy": 0.259765625,
+        "truncated": 0
+      }
+    ],
+    [
+      {
+        "accuracy": 0.2734375,
+        "correct": 140,
+        "total": 512,
+        "duration_seconds": 1.3919920921325684,
+        "peak_cuda_bytes": 4881846784,
+        "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/random-disturb-20261015/runs/round-1-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-38948",
+        "decoding": "greedy",
+        "latent_steps": 6,
+        "max_answer_tokens": 256,
+        "inference_protocol": "official-style padding positions and cached attention; batch128",
+        "split": "validation",
+        "strict_accuracy": 0.2734375,
+        "truncated": 0
+      },
+      {
+        "accuracy": 0.25390625,
+        "correct": 130,
+        "total": 512,
+        "duration_seconds": 1.3851032257080078,
+        "peak_cuda_bytes": 4881846784,
+        "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/random-disturb-20261015/runs/round-1-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-41944",
+        "decoding": "greedy",
+        "latent_steps": 6,
+        "max_answer_tokens": 256,
+        "inference_protocol": "official-style padding positions and cached attention; batch128",
+        "split": "validation",
+        "strict_accuracy": 0.25390625,
+        "truncated": 0
+      }
+    ]
+  ],
+  "chosen_endpoint": {
+    "epoch": 14.0,
+    "step": 41944,
+    "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/random-disturb-20261015/runs/round-1-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-41944",
+    "pairs_sixths": [
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ]
+  }
+}

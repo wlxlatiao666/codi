@@ -1,0 +1,29 @@
+{
+  "identical_start_and_first_two_batches": true,
+  "runs": [
+    "smoke/parent",
+    "smoke/identical",
+    "smoke/mutant"
+  ],
+  "start_step": 2,
+  "model_state_sha256": "6ca74df87c9e1742921df55622d59ff14d54b33f3ba23eb62fc1ba2272ea061d",
+  "identical_arms_bitwise_equal": true,
+  "resumed_matches_uninterrupted": true,
+  "model_optimizer_scheduler_rng_checked": true,
+  "mutant_changes_weights": true,
+  "mutant_pairs_sixths": [
+    [
+      2,
+      2
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      5,
+      4
+    ]
+  ],
+  "deterministic_smoke_only": true
+}

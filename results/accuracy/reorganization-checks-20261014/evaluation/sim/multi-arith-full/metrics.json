@@ -1,0 +1,30 @@
+{
+  "accuracy": 0.9266666666666666,
+  "correct": 556,
+  "total": 600,
+  "duration_seconds": 1.1685054302215576,
+  "peak_cuda_bytes": 1831000576,
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/attention-aligned-20261012/runs/sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840",
+  "decoding": "greedy",
+  "latent_steps": 6,
+  "max_answer_tokens": 256,
+  "inference_protocol": "official-style padding positions and cached attention; batch128",
+  "data_path": "/home/tiger/codi-ab-c71db6e-20260909/multiarith-full-20261012/data",
+  "data_sha256": "4776e5081de0258b315571d54b5a30d63551a3a88613c022e631c090d20a9be5",
+  "batch_size": 128,
+  "split": "multi-arith-full",
+  "strict_accuracy": 0.9266666666666666,
+  "truncated": 0,
+  "source_splits": {
+    "train": {
+      "correct": 387,
+      "total": 420,
+      "accuracy": 0.9214285714285714
+    },
+    "test": {
+      "correct": 169,
+      "total": 180,
+      "accuracy": 0.9388888888888889
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "accuracy": 0.173828125,
+  "correct": 89,
+  "total": 512,
+  "duration_seconds": 4.192105531692505,
+  "peak_cuda_bytes": 912636928,
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/sim-cot-official-20261009/runs/official-sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-35952",
+  "decoding": "greedy",
+  "latent_steps": 6,
+  "max_answer_tokens": 64,
+  "split": "validation",
+  "strict_accuracy": 0.173828125,
+  "truncated": 0
+}

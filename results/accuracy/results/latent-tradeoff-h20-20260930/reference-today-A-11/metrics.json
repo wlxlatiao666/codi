@@ -1,0 +1,11 @@
+{
+  "accuracy": 0.42987111448066717,
+  "correct": 567,
+  "total": 1319,
+  "duration_seconds": 12.24617075920105,
+  "peak_cuda_bytes": 962867200,
+  "checkpoint": "results/retrain-original-20260914/A/run/gpt2/ep_40/lr_0.003/seed_11",
+  "decoding": "greedy",
+  "latent_steps": 6,
+  "max_answer_tokens": 64
+}

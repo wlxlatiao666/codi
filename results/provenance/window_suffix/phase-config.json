@@ -1,0 +1,9 @@
+{
+  "name": "full",
+  "pairs_sixths": "continuous <=3 suffix starts around ceil(k*m/6); equal k weight 0.05",
+  "stop": 40,
+  "gpu": 2,
+  "source_checkpoint": null,
+  "evaluate_each_epoch": false,
+  "smoke": false
+}

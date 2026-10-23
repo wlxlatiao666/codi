@@ -1,0 +1,5 @@
+{
+  "epoch": 40.0,
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/attention-aligned-20261012/runs/sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840",
+  "global_step": 119840
+}

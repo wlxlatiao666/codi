@@ -1,0 +1,20 @@
+{
+  "train_seconds": 188.02849578857422,
+  "arm": "full",
+  "seed": 11,
+  "steps": 200,
+  "initial_checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/results/full/A/run/gpt2/ep_40/lr_0.003/seed_11/pytorch_model.bin",
+  "evaluation": {
+    "correct": {
+      "audit": 341,
+      "all": 557,
+      "dev": 216
+    },
+    "total": {
+      "dev": 512,
+      "audit": 807,
+      "all": 1319
+    },
+    "seconds": 13.556153059005737
+  }
+}

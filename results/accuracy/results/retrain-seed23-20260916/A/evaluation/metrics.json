@@ -1,0 +1,11 @@
+{
+  "accuracy": 0.4351781652767248,
+  "correct": 574,
+  "total": 1319,
+  "duration_seconds": 11.996716976165771,
+  "peak_cuda_bytes": 962362368,
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/results/retrain-seed23-20260916/A/run/gpt2/ep_40/lr_0.003/seed_23",
+  "decoding": "greedy",
+  "latent_steps": 6,
+  "max_answer_tokens": 64
+}

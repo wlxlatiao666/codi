@@ -1,0 +1,1027 @@
+{
+  "created": "2026-10-22T17:57:46.535315",
+  "root": "/home/tiger/codi-ab-c71db6e-20260909",
+  "files": [
+    {
+      "path": "attention-aligned-20261012/runs/sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-116844/optimizer.pt",
+      "bytes": 658426426,
+      "mtime_ns": 1791953218212241619,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "attention-aligned-20261012/runs/sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-116844/pytorch_model.bin",
+      "bytes": 578194626,
+      "mtime_ns": 1791953216904242717,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "attention-aligned-20261012/runs/sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-116844/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1791953218311241536,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "attention-aligned-20261012/runs/sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-116844/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1791953218300241545,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "attention-aligned-20261012/runs/sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-116844/training_args.bin",
+      "bytes": 6264,
+      "mtime_ns": 1791953217118242537,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "attention-aligned-20261012/runs/sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/optimizer.pt",
+      "bytes": 658426426,
+      "mtime_ns": 1791956095968771097,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "attention-aligned-20261012/runs/sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/pytorch_model.bin",
+      "bytes": 578194626,
+      "mtime_ns": 1791956094689772143,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "attention-aligned-20261012/runs/sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1791956096071771013,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "attention-aligned-20261012/runs/sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1791956096060771022,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "attention-aligned-20261012/runs/sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/training_args.bin",
+      "bytes": 6264,
+      "mtime_ns": 1791956094901771970,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-fullaux-20261008/runs/fullaux-random/dataset.pt",
+      "bytes": 1909239256,
+      "mtime_ns": 1791447140122678760,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-fullaux-20261008/runs/fullaux-random/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1791553131263193918,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-fullaux-20261008/runs/fullaux-random/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1791553129937194881,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-fullaux-20261008/runs/fullaux-random/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1791553131302193890,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-fullaux-20261008/runs/fullaux-random/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1791553131291193898,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-fullaux-20261008/runs/fullaux-random/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/training_args.bin",
+      "bytes": 6648,
+      "mtime_ns": 1791553130107194756,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-search-20260930/runs/detach-check/dataset.pt",
+      "bytes": 1896623778,
+      "mtime_ns": 1790905990070888645,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-search-20260930/runs/detach-check/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1790929083753882562,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-search-20260930/runs/detach-check/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1790929083287882951,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-search-20260930/runs/detach-check/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1790929083830882497,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-search-20260930/runs/detach-check/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1790929083813882511,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-search-20260930/runs/detach-check/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/training_args.bin",
+      "bytes": 6584,
+      "mtime_ns": 1790929083489882782,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-search-20260930/runs/first-step-check/dataset.pt",
+      "bytes": 1896623778,
+      "mtime_ns": 1790906006711877453,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-search-20260930/runs/first-step-check/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1790929082373883714,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-search-20260930/runs/first-step-check/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1790929081935884079,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-search-20260930/runs/first-step-check/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1790929082431883665,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-search-20260930/runs/first-step-check/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1790929082417883677,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "continuation-search-20260930/runs/first-step-check/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/training_args.bin",
+      "bytes": 6584,
+      "mtime_ns": 1790929082114883930,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/adaptive-final/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792148490381370121,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/adaptive-final/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792148489921370367,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/adaptive-final/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792148490430370094,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/adaptive-final/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792148490419370100,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/adaptive-final/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792148490124370258,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-12/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-35952/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792078177970848501,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-12/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-35952/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792078177505848879,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-12/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-35952/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792078178013848466,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-12/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-35952/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792078178002848475,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-12/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-35952/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792078177709848713,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-16/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-47936/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792088264296730332,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-16/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-47936/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792088263834730774,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-16/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-47936/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792088264363730268,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-16/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-47936/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792088264350730280,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-16/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-47936/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792088264030730586,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-20/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-59920/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792098421668861481,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-20/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-59920/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792098421233861830,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-20/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-59920/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792098421723861437,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-20/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-59920/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792098421712861446,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-20/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-59920/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792098421415861684,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-24/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-71904/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792108725437016536,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-24/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-71904/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792108724997016917,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-24/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-71904/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792108725477016502,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-24/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-71904/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792108725466016511,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/advance-24/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-71904/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792108725174016764,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-0-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-29960/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792073030812995546,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-0-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-29960/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792073030308995970,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-0-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-29960/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792073030857995508,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-0-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-29960/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792073030846995517,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-0-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-29960/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792073030534995780,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-0-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-29960/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792073067860964384,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-0-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-29960/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792073067425964750,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-0-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-29960/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792073067899964351,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-0-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-29960/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792073067888964360,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-0-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-29960/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792073067604964599,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-1-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-41944/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792083197287390856,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-1-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-41944/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792083196808391292,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-1-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-41944/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792083197333390814,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-1-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-41944/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792083197322390824,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-1-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-41944/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792083197024391096,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-1-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-41944/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792083293339303390,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-1-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-41944/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792083292897303792,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-1-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-41944/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792083293383303350,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-1-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-41944/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792083293371303361,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-1-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-41944/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792083293084303622,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-2-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-53928/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792093411925681103,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-2-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-53928/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792093411484681537,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-2-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-53928/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792093411968681061,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-2-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-53928/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792093411957681072,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-2-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-53928/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792093411669681355,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-2-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-53928/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792093352319740933,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-2-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-53928/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792093351906741352,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-2-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-53928/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792093352352740900,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-2-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-53928/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792093352341740911,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-2-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-53928/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792093352069741187,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-3-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-65912/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792103568834326578,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-3-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-65912/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792103568424326959,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-3-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-65912/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792103568875326540,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-3-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-65912/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792103568864326550,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-3-child/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-65912/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792103568585326810,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-3-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-65912/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792103609706288430,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-3-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-65912/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792103609288288821,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-3-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-65912/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792103609743288396,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-3-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-65912/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792103609730288408,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/round-3-parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-65912/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792103609460288660,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/identical/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792047762623467115,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/identical/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792047762178468254,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/identical/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792047762670466995,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/identical/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792047762657467028,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/identical/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792047762346467824,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/mutant/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792047762654467036,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/mutant/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792047762215468160,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/mutant/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792047762699466920,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/mutant/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792047762686466954,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/mutant/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792047762381467735,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792047762563467269,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792047762082468500,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792047762648467051,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792047762636467082,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/parent/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792047762310467916,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/uninterrupted/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792047991843171656,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/uninterrupted/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792047991428172198,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/uninterrupted/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792047991885171601,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/uninterrupted/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792047991873171617,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/uninterrupted/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792047991593171983,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/warmup/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-2/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792047667134632857,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/warmup/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-2/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792047666725633377,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/warmup/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-2/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792047667174632806,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/warmup/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-2/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792047667163632820,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/smoke/warmup/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-2/training_args.bin",
+      "bytes": 6328,
+      "mtime_ns": 1792047666888633169,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/warmup/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/optimizer.pt",
+      "bytes": 160542970,
+      "mtime_ns": 1792067964855636896,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/warmup/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/pytorch_model.bin",
+      "bytes": 329256242,
+      "mtime_ns": 1792067964424637232,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/warmup/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1792067964904636858,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/warmup/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1792067964892636867,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "random-disturb-20261015/runs/warmup/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/training_args.bin",
+      "bytes": 6264,
+      "mtime_ns": 1792067964603637093,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "results/latent-readout-20260930/A-11/full_logprobs.npy",
+      "bytes": 1856202448,
+      "mtime_ns": 1790757155156194358,
+      "reason": "old large diagnostic array; metrics retained"
+    },
+    {
+      "path": "results/latent-readout-20260930/A-23/full_logprobs.npy",
+      "bytes": 1856202448,
+      "mtime_ns": 1790757157054192870,
+      "reason": "old large diagnostic array; metrics retained"
+    },
+    {
+      "path": "results/latent-readout-20260930/B-11/full_logprobs.npy",
+      "bytes": 1856202448,
+      "mtime_ns": 1790757155115194391,
+      "reason": "old large diagnostic array; metrics retained"
+    },
+    {
+      "path": "results/latent-readout-20260930/B-23/full_logprobs.npy",
+      "bytes": 1856202448,
+      "mtime_ns": 1790757156978192930,
+      "reason": "old large diagnostic array; metrics retained"
+    },
+    {
+      "path": "sim-cot-20261008/runs/sim-full/dataset.pt",
+      "bytes": 952376390,
+      "mtime_ns": 1791449781947308620,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/sim-full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/optimizer.pt",
+      "bytes": 658426426,
+      "mtime_ns": 1791481551949168881,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/sim-full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/pytorch_model.bin",
+      "bytes": 578195906,
+      "mtime_ns": 1791481546253172120,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/sim-full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1791481552052168823,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/sim-full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1791481552041168829,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/sim-full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968/training_args.bin",
+      "bytes": 6584,
+      "mtime_ns": 1791481546485171988,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/sim-trimmed/dataset.pt",
+      "bytes": 944114566,
+      "mtime_ns": 1791449787362303673,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/sim-trimmed/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-11984/optimizer.pt",
+      "bytes": 658426426,
+      "mtime_ns": 1791465081725639897,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/sim-trimmed/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-11984/pytorch_model.bin",
+      "bytes": 578195906,
+      "mtime_ns": 1791465077769643667,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/sim-trimmed/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-11984/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1791465081832639795,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/sim-trimmed/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-11984/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1791465081821639805,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/sim-trimmed/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-11984/training_args.bin",
+      "bytes": 6584,
+      "mtime_ns": 1791465077972643473,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/smoke-sim-full/dataset.pt",
+      "bytes": 74302,
+      "mtime_ns": 1791449036581990425,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/smoke-sim-full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-16/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1791449173060865266,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/smoke-sim-full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-16/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1791449173049865277,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/smoke-sim-full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-16/training_args.bin",
+      "bytes": 6584,
+      "mtime_ns": 1791449162014875396,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/smoke-sim-trimmed/dataset.pt",
+      "bytes": 73598,
+      "mtime_ns": 1791449036579990427,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/smoke-sim-trimmed/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-16/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1791449173002865320,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/smoke-sim-trimmed/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-16/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1791449172991865330,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-20261008/runs/smoke-sim-trimmed/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-16/training_args.bin",
+      "bytes": 6584,
+      "mtime_ns": 1791449161793875599,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/official-sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-116844/optimizer.pt",
+      "bytes": 658426426,
+      "mtime_ns": 1791648948009880530,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/official-sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-116844/pytorch_model.bin",
+      "bytes": 578194626,
+      "mtime_ns": 1791648942376888668,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/official-sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-116844/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1791648948105880391,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/official-sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-116844/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1791648948094880407,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/official-sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-116844/training_args.bin",
+      "bytes": 6264,
+      "mtime_ns": 1791648942563888398,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/official-sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/optimizer.pt",
+      "bytes": 658426426,
+      "mtime_ns": 1791651849190292115,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/official-sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/pytorch_model.bin",
+      "bytes": 578194626,
+      "mtime_ns": 1791651842684298207,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/official-sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1791651849261292049,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/official-sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1791651849250292059,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/official-sim/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/training_args.bin",
+      "bytes": 6264,
+      "mtime_ns": 1791651842899298005,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/official-sim/run/gpt2/ep_40/lr_0.003/seed_11/pytorch_model.bin",
+      "bytes": 578194626,
+      "mtime_ns": 1791651910312236722,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/official-sim/run/gpt2/ep_40/lr_0.003/seed_11/training_args.bin",
+      "bytes": 6264,
+      "mtime_ns": 1791651910494236593,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/smoke/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-2/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1791529073098068686,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/smoke/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-2/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1791529073087068696,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/smoke/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-2/training_args.bin",
+      "bytes": 6264,
+      "mtime_ns": 1791529065975075619,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/smoke/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/rng_state.pth",
+      "bytes": 14244,
+      "mtime_ns": 1791529181042961912,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/smoke/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/scheduler.pt",
+      "bytes": 1064,
+      "mtime_ns": 1791529181030961925,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/smoke/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-4/training_args.bin",
+      "bytes": 6264,
+      "mtime_ns": 1791529176342966666,
+      "reason": "obsolete experiment weights/state/cache"
+    },
+    {
+      "path": "sim-cot-official-20261009/runs/smoke/run/gpt2/ep_40/lr_0.003/seed_11/training_args.bin",
+      "bytes": 6264,
+      "mtime_ns": 1791529230398914846,
+      "reason": "obsolete experiment weights/state/cache"
+    }
+  ],
+  "total_bytes": 33798147910,
+  "protected": [
+    "continuation-dual-random-20261010",
+    "assets",
+    "repository",
+    "venv",
+    "all-cuts-20261020",
+    "aligned-step-20261021",
+    "window-suffix-20261022",
+    "attention-aligned-20261012/runs/codi",
+    "attention-aligned-20261012/runs/continuation",
+    "random-disturb-20261015/runs/fixed-control"
+  ],
+  "kept_model_sha256": {
+    "attention-aligned-20261012/runs/codi/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/pytorch_model.bin": "bb10ac1fc738c1779c8a27a7b581f52d371320d383db398d8253b2665db72276",
+    "attention-aligned-20261012/runs/codi/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-116844/pytorch_model.bin": "592a22910f052927f9d8f6db8cfea18dca1c603f087cbc761a838f6eeee82f45",
+    "attention-aligned-20261012/runs/continuation/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/pytorch_model.bin": "898aafd1f269513011e95c14767ec9d1ebd535b8b3e9aa9756db0cc243af5421",
+    "attention-aligned-20261012/runs/continuation/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-116844/pytorch_model.bin": "4a7c4c4b6613f5144a43e78ecee212dac6cb30891c4e14725f187e396ee2e237",
+    "random-disturb-20261015/runs/fixed-control/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840/pytorch_model.bin": "b411513dff9cc73d8881f58587f47b890a4addd55246b8e4ddbb37a4f9ce1601"
+  },
+  "disk_before": {
+    "total": 134208294912,
+    "used": 119282974720,
+    "free": 14908542976
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "step": 40,
+  "epoch": 0.013353363378400934,
+  "updated": 1792487051.3703644,
+  "pairs_sixths": "all k=1..6 x all proper suffixes",
+  "metrics": {
+    "loss": 10.444625854492188,
+    "epoch": 0.013353363378400934,
+    "ce_loss": 3.972993850708008,
+    "distill_loss": 0.2739189565181732,
+    "ref_ce_loss": 4.402013778686523,
+    "explain_loss": null,
+    "continuation_loss": 5.985662937164307,
+    "grad_norm": 12.319304466247559,
+    "learning_rate": 3.253615127919911e-05
+  }
+}

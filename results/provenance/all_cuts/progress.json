@@ -1,0 +1,21 @@
+{
+  "step": 119840,
+  "epoch": 40.0,
+  "updated": 1792698670.688087,
+  "pairs_sixths": "all k=1..6 x all proper suffixes",
+  "metrics": {
+    "loss": 0.4721,
+    "epoch": 40.0,
+    "ce_loss": 0.116558738052845,
+    "distill_loss": 0.07469529658555984,
+    "ref_ce_loss": 0.14379867911338806,
+    "explain_loss": null,
+    "continuation_loss": 0.2474706470966339,
+    "grad_norm": 0.6689826846122742,
+    "learning_rate": 5.477973075151965e-13,
+    "train_runtime": 211693.2388,
+    "train_samples_per_second": 72.438,
+    "train_steps_per_second": 0.566,
+    "train_loss": 0.9685453926291421
+  }
+}

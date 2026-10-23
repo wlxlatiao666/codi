@@ -1,13 +1,12 @@
-# CoDi / SIM-CoT / 固定截点续算
+# CoDi：六种训练 setting 与续算探针
 
-当前根目录实现对应 2026-10-12 attention/位置编码对齐后的三组正式实验。
+[六种 setting 的训练入口、公共超参和外部资产](SIX_SETTINGS.md) · [准确率归档](results/README.md) · [超参审计](results/settings-audit.json)
 
-- [复现实验与启动方式](REPRODUCE.md)
-- [GSM8K 与 OOD 实验结果](RESULTS.md)
-- 共用模型：`src/model.py`；续算损失：`src/continuation.py`；数据/截点选项：`src/search_data.py`。
-- `--use_decoder True` 启用 SIM-CoT；固定截点续算通过 `--continuation_weight 0.3` 和冻结的数据缓存启用。
-- 请使用 `scripts/train_codi.sh`、`scripts/train_sim.sh`、`scripts/train_continuation.sh`。训练依赖远端保留的精确数据缓存。
-- `analysis/` 是不纳入 Git 的历史实验归档。下方原始说明及旧脚本仅作历史参考，不是本轮复现入口。
+本仓库包含 Base CODI、CODI + SIM-CoT、固定截点、全 latent × 全后缀、顺序单步、三位置窗口后缀实验。保留历史评测记录和完整 k-r / k-j 热力图；权重和数据缓存留在服务器。
+
+公共训练超参已核对，无须修改。GPU1 / GPU2 的在训实现及依赖保持原样。
+
+方法细节：[原版复现](REPRODUCE.md)、[全后缀](ALL_CUTS.md)、[单步](ALIGNED_STEP.md)、[窗口](WINDOW_SUFFIX.md)、[历史局部搜索](LOCAL_SEARCH.md)。下方为原始项目说明，不是本轮六组实验的启动入口。
 
 ---
 

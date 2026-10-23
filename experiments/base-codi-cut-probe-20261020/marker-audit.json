@@ -1,0 +1,10 @@
+{
+  "sampled_training_rows": 3246,
+  "target_first_token_counts": {
+    "16791": 12036
+  },
+  "marker": "<<",
+  "token_id": 16791,
+  "all_training_targets_start_with_marker": true,
+  "validation_targets_start_with_marker": "guaranteed by extraction of <<...>> equations"
+}

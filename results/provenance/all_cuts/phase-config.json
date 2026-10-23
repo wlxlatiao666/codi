@@ -1,0 +1,9 @@
+{
+  "name": "full",
+  "pairs_sixths": "all k=1..6 x all proper suffixes",
+  "stop": 40,
+  "gpu": 0,
+  "source_checkpoint": null,
+  "evaluate_each_epoch": false,
+  "smoke": false
+}

@@ -1,0 +1,87 @@
+{
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/attention-aligned-20261012/runs/codi/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840",
+  "checkpoint_sha256": "bb10ac1fc738c1779c8a27a7b581f52d371320d383db398d8253b2665db72276",
+  "source": {
+    "epoch": 40.0,
+    "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/attention-aligned-20261012/runs/codi/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840",
+    "global_step": 119840
+  },
+  "base_continuation_weight": 0,
+  "model_eval": true,
+  "requires_grad": false,
+  "k_values": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "train_strata": {
+    "2": {
+      "population": 103533,
+      "sample": 512
+    },
+    "3": {
+      "population": 47583,
+      "sample": 512
+    },
+    "4": {
+      "population": 17636,
+      "sample": 512
+    },
+    "5": {
+      "population": 5572,
+      "sample": 512
+    },
+    "6": {
+      "population": 2328,
+      "sample": 512
+    },
+    "7": {
+      "population": 564,
+      "sample": 512
+    },
+    "8": {
+      "population": 121,
+      "sample": 121
+    },
+    "9": {
+      "population": 43,
+      "sample": 43
+    },
+    "10": {
+      "population": 8,
+      "sample": 8
+    },
+    "11": {
+      "population": 1,
+      "sample": 1
+    },
+    "12": {
+      "population": 1,
+      "sample": 1
+    }
+  },
+  "train_population": 177390,
+  "datasets": {
+    "train_stratified": 3246,
+    "validation_equations": 330
+  },
+  "validation_excluded": {
+    "fewer_than_two_retained_equations": 182
+  },
+  "validation_preprocessing": "extract <<equations>> from gold answer; remove final equation; match training suffix syntax",
+  "train_sampling": "up to 512 per retained-step-count m; seed20261020; weight=population/sample",
+  "targets": "all proper suffixes j=1..m-1; EOT + suffix + answer + EOS",
+  "r_mapping": "j=min(m-1,max(1,ceil(m*r))); every distinct j evaluated exactly once",
+  "precision": "float32 forward and CE; TF32 disabled; natural logarithm nats/token",
+  "batch": 64,
+  "prefix_attention": "historical left padding; encoder mask only; implicit positions",
+  "bank_sha256": "74e58203921378126b4d401585f76cc24917bc4c9314f05c771353aec67e425e",
+  "duration_seconds": 113.0745701789856,
+  "scored_pairs": 88704,
+  "single_branch_checks": 14,
+  "peak_cuda_bytes": 8168923648
+}

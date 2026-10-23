@@ -1,0 +1,79 @@
+{
+  "experiment": "/home/tiger/codi-ab-c71db6e-20260909/random-disturb-20261015",
+  "queried_at": 1792048277.1369922,
+  "controller-process": {
+    "pid": 2731,
+    "started": 1792048042.2161145
+  },
+  "smoke-verification": {
+    "identical_start_and_first_two_batches": true,
+    "runs": [
+      "smoke/parent",
+      "smoke/identical",
+      "smoke/mutant"
+    ],
+    "start_step": 2,
+    "model_state_sha256": "6ca74df87c9e1742921df55622d59ff14d54b33f3ba23eb62fc1ba2272ea061d",
+    "identical_arms_bitwise_equal": true,
+    "resumed_matches_uninterrupted": true,
+    "model_optimizer_scheduler_rng_checked": true,
+    "mutant_changes_weights": true,
+    "mutant_pairs_sixths": [
+      [
+        2,
+        2
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        5,
+        4
+      ]
+    ],
+    "deterministic_smoke_only": true
+  },
+  "runs": [
+    {
+      "step": 160,
+      "epoch": 0.053413453513603736,
+      "updated": 1792048262.4379344,
+      "pairs_sixths": [
+        [
+          3,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          5,
+          4
+        ]
+      ],
+      "metrics": {
+        "loss": 2.9854350090026855,
+        "epoch": 0.053413453513603736,
+        "ce_loss": 0.9430939555168152,
+        "distill_loss": 0.14754419028759003,
+        "ref_ce_loss": 1.4239732027053833,
+        "explain_loss": null,
+        "continuation_loss": 1.5694127082824707,
+        "grad_norm": 0.7470706701278687,
+        "learning_rate": 0.00013264738598442715
+      },
+      "run": "warmup",
+      "seconds_since_update": 15,
+      "throughput": {
+        "seconds_per_step": 0.7626745560589958,
+        "estimated_40epoch_hours": 25.38858855503057,
+        "peak_cuda_gb": 28.585100173950195,
+        "step": 20,
+        "samples": 383368
+      }
+    }
+  ],
+  "decisions": []
+}

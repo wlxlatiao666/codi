@@ -1,0 +1,14 @@
+{
+  "accuracy": 0.541015625,
+  "correct": 277,
+  "total": 512,
+  "duration_seconds": 4.837575435638428,
+  "peak_cuda_bytes": 913218560,
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/continuation-search-20260930/runs/k4-r33/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-95872",
+  "decoding": "greedy",
+  "latent_steps": 6,
+  "max_answer_tokens": 64,
+  "split": "validation",
+  "strict_accuracy": 0.541015625,
+  "truncated": 0
+}

@@ -1,0 +1,42 @@
+原生 CODI 截点续算探测：2026-10-20
+
+结论：总体原始续算 CE 中，k=1 在所有实际不同的 r 区间内最低。该指标混合了格式切换、后缀推理和答案预测，不能直接解释为 latent 的推理进度。
+全部训练探测目标的首 token 已核实为固定标记 << (16791)。模型原本在 EOT 后训练的是答案输出；预测 << 的高 loss 是明显的格式因素。剥离该 token 的评分项后，后缀第一步内容的 loss 表现出“较晚后缀相对更受益于较晚 latent”的趋势。注意：这是后验诊断指标；仍 teacher-force 给定 <<，不替代原始续算 loss，也没有修改正在训练的全组合实验。
+分链长的图尤其重要：总体 r 网格中，短链会把多个 r 取整为相同 j，因此总体矩阵不是单一长度上的逐步进度图。固定 m=6 的 512 条训练样本，其原始 CE 在 r=1/6 时 k1=3.527、k6=3.619；在 r=5/6 时 k1=4.026、k6=3.990。
+同一 m=6 组的第一步内容 CE（去掉 <<）在 r=1/6 时 k1=2.951、k6=2.999；在 r=5/6 时 k1=3.835、k6=3.203。
+这些结果支持相对进度匹配的趋势，不能证明 k/6=r 的严格对齐，也不能据此认定某个 setting 训练后最优。
+
+方法与覆盖：
+模型：纯 CODI，seed11，第40 epoch、119840 update；训练续算系数0；冻结全部权重、eval、inference_mode。
+训练探测：按保留的显式 CoT 步数 m 分层，每层随机抽至多512条，seed20261020；共3246条，m=2..12；以总体层规模/抽样数回权，代表177390条续算有效训练样本。不是全量训练样本评估。
+验证探测：固定512条验证集，抽取标注答案中的 <<算式>>，沿用去掉最后一步的处理；330条有至少两步保留推理的样本进入测量，182条不满足条件。验证集结果与训练缓存结果分开展示。
+每条样本枚举 j=1..m-1，全部 k=1..6，另加k=0参照。j=min(m-1,max(1,ceil(m*r)))。不枚举整链或仅答案目标；沿用当前续算实验的非空真后缀定义。
+共12036个训练后缀、636个验证后缀，乘7个k，得到88704条测量。训练分布的全部r等价区间40个，验证分布14个。每个区间内的实际截点映射完全相同；CSV覆盖全部区间，图上仅展示11个常用r刻度。
+目标为 EOT + 后缀推理 + 答案 + EOS。表内 CE 为自然对数 nats/token，没有乘0.3。EOT和padding不计入标签；每格用有效目标token加权平均。
+另保存推理部分、答案部分、第一步、前8个token、首token以及剥离首token后的评分。答案部分的loss也是在gold后缀teacher forcing下计算，不是答案自由生成准确率。
+使用历史attention/position规则：encoder左padding且有mask；latent/continuation不另加mask或position_ids。question batch64，续算分块32，同一行在各k下共享相同原始prefix padding。
+GPU1执行，FP32 forward/CE，TF32关闭，14次单条/批量loss对照通过。初始bf16数值校验未通过，未采用该次结果。
+纯评分耗时113.07秒（不含模型与缓存加载），峰值分配显存约7.61 GiB。未反向传播，未更新checkpoint。
+
+配对趋势检验：
+定义 D=[L(k6,r5/6)-L(k1,r5/6)]-[L(k6,r1/6)-L(k1,r1/6)]，L为第一步内容CE。D<0表示较晚后缀更偏好k6相对于k1。
+train_stratified: D=-0.2410, 95% bootstrap CI [-0.2622, -0.2204]。
+补充固定效应回归：控制每个具体后缀及k主效应后，loss对|k/6-j/m|的斜率=0.4789, 95% CI [0.4371, 0.5221]。
+validation_equations: D=-0.2997, 95% bootstrap CI [-0.3705, -0.2296]。
+补充固定效应回归：控制每个具体后缀及k主效应后，loss对|k/6-j/m|的斜率=0.4575, 95% CI [0.3444, 0.5635]。
+置信区间采用按样本聚类、m分层的300次bootstrap；仅反映当前checkpoint与样本中的不确定性，非多seed结论。
+
+文件索引：
+*-overview.png：总体原始CE与第一步内容CE。
+*-m6.png：固定m=6的同样两个指标。
+*-by-length.png / .csv：固定链长，各个实际j的测量。
+*-grid.csv：11个r刻度的完整数值，包含token均值与样本均值。
+*-all-r-intervals.csv：全部r等价区间的测量。
+per_target.csv.gz：全部逐样本逐k逐j原始数值。
+manifest.json / marker-audit.json：模型、数据、精度与起始标记审计。
+summary.json：指标矩阵及配对趋势检验。
+
+复现代码：scripts/cut_probe/run.py、analyze.py、audit_markers.py。分析使用numpy及matplotlib3.9.4。
+Checkpoint: /home/tiger/codi-ab-c71db6e-20260909/attention-aligned-20261012/runs/codi/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840
+Checkpoint SHA256: bb10ac1fc738c1779c8a27a7b581f52d371320d383db398d8253b2665db72276
+远端实验目录：/home/tiger/codi-ab-c71db6e-20260909/base-codi-cut-probe-20261020

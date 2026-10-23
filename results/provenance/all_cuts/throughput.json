@@ -1,0 +1,7 @@
+{
+  "seconds_per_step": 1.7324023106518913,
+  "estimated_40epoch_hours": 57.669748030145186,
+  "peak_cuda_gb": 26.014803409576416,
+  "step": 20,
+  "samples": 383368
+}

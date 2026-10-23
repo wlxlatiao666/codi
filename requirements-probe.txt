@@ -1,0 +1,2 @@
+# Install after the pinned training requirements; plotting is CPU-only.
+matplotlib==3.9.4

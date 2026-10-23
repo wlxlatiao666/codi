@@ -1,0 +1,21 @@
+{
+  "global_step": 119840,
+  "max_steps": 119840,
+  "epoch": 40.0,
+  "updated": 1791931086.710897,
+  "metrics": {
+    "loss": 0.4224,
+    "epoch": 40.0,
+    "ce_loss": 0.1307547688484192,
+    "distill_loss": 0.08611463755369186,
+    "ref_ce_loss": 0.1483784317970276,
+    "explain_loss": null,
+    "continuation_loss": null,
+    "grad_norm": 0.8194888830184937,
+    "learning_rate": 5.477973075151965e-13,
+    "train_runtime": 69328.2296,
+    "train_samples_per_second": 221.19,
+    "train_steps_per_second": 1.729,
+    "train_loss": 0.5475876535369812
+  }
+}

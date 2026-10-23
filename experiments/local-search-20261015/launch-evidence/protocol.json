@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "worker": 4401371,
+  "initial_pairs_sixths": [
+    [
+      3,
+      2
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      5,
+      4
+    ]
+  ],
+  "ratio_denominator": 6,
+  "train_seed": 11,
+  "mutation_seed": 20261015,
+  "warmup_epochs": 8,
+  "total_epochs": 40,
+  "rounds": [
+    8,
+    12,
+    16,
+    20
+  ],
+  "competition_epochs": 2,
+  "frozen_after_epoch": 24,
+  "mutation": "one coordinate +/-1; k in 1..5, q in 1..5; ordered unique k and nondecreasing q; skip identical actual cuts",
+  "choice": "choose a legal mutation family uniformly, then one effective neighbor uniformly",
+  "selection": "mean validation answer accuracy at both competition endpoints; child requires >=0.01 absolute gain; otherwise parent",
+  "validation_samples": 512,
+  "auxiliary_weight": 0.3,
+  "shared_warmup": true,
+  "control": "original three pairs, same epoch8 checkpoint, continued to epoch40 without selection",
+  "budget": "80 single-model epoch equivalents including shared warmup, control, and discarded branches; plus evaluation and smoke",
+  "gpu": {
+    "parent": 0,
+    "child": 1,
+    "fixed_control": 2,
+    "serial_evaluation": 3
+  },
+  "target_cache": "/home/tiger/codi-ab-c71db6e-20260909/continuation-dual-random-20261010/dataset.pt",
+  "main_attention": "unchanged historical physical positions; fix_attn_mask=False",
+  "test_policy": "no test in search; final epoch40 of adaptive and fixed control only",
+  "evaluation_splits": [
+    "test",
+    "gsm-hard",
+    "multi-arith-full",
+    "svamp"
+  ],
+  "inference": "6 latents, batch128, greedy, max256 answer tokens, historical split boundaries",
+  "limitations": [
+    "single training seed",
+    "validation reused for four selections",
+    "local two-epoch gains do not establish global optimum",
+    "adaptive policy trajectory is not proof of a superior from-scratch fixed setting"
+  ]
+}

@@ -12,3 +12,13 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .DS_Store
+
+# Machine metadata and regenerable outputs
+._*
+*.log
+*.tmp
+*.pt
+*.pth
+*.safetensors
+pytorch_model*.bin
+/outputs/

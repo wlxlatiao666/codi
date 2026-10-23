@@ -1,0 +1,14 @@
+{
+  "accuracy": 0.568359375,
+  "correct": 291,
+  "total": 512,
+  "duration_seconds": 4.274886131286621,
+  "peak_cuda_bytes": 914619392,
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/continuation-fullaux-20261008/runs/fullaux-random/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-95872",
+  "decoding": "greedy",
+  "latent_steps": 6,
+  "max_answer_tokens": 64,
+  "split": "validation",
+  "strict_accuracy": 0.568359375,
+  "truncated": 0
+}

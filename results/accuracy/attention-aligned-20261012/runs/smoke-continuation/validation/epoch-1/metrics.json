@@ -1,0 +1,15 @@
+{
+  "accuracy": 0.0,
+  "correct": 0,
+  "total": 16,
+  "duration_seconds": 2.22544264793396,
+  "peak_cuda_bytes": 756406784,
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/attention-aligned-20261012/runs/smoke-continuation/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-2",
+  "decoding": "greedy",
+  "latent_steps": 6,
+  "max_answer_tokens": 256,
+  "inference_protocol": "official-style padding positions and cached attention; batch128",
+  "split": "validation",
+  "strict_accuracy": 0.0,
+  "truncated": 16
+}

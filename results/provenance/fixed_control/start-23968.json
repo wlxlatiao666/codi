@@ -1,0 +1,34 @@
+{
+  "pairs_sixths": [
+    [
+      3,
+      2
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      5,
+      4
+    ]
+  ],
+  "start_step": 23968,
+  "max_steps": 119840,
+  "samples": 383368,
+  "main_data_sha256": "4e3a27e14588a038ec501b9981b15da14c3520d8e14e60d3f133b9681dae4176",
+  "model_state_sha256": "dec619c0d47325919d3023d28fcf88d1d64d30ccb403f9fee3e34c265b3b618f",
+  "resume": "/home/tiger/codi-ab-c71db6e-20260909/random-disturb-20261015/runs/warmup/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968",
+  "optimizer_has_state": true,
+  "lr": 0.0027783392291314303,
+  "scheduler_last_epoch": 23968,
+  "optimizer_state_entries": 102,
+  "smoke": false,
+  "source_checkpoint_sha256": {
+    "pytorch_model.bin": "67cff35db5060ac76c6f6348e5bd85c488b89babe3f82e669d0cb0e4b73b6011",
+    "optimizer.pt": "67278ff56a24a479be62b2cc9d4c81d11b421e1a3f7d5888debe761b8c66859e",
+    "scheduler.pt": "59097bc5a7484c81391d51374a04e4621164f0161fce3bb3dcb102756ea0a3d5",
+    "rng_state.pth": "fe19b72fea5bde138c53ee4de2096bb1677c0ca8a9ac1bd147be002057aef3c9",
+    "trainer_state.json": "bae17ca445c7993c10521f63e10fea30e9a710f9fdbf14ae011cef962944279f"
+  }
+}

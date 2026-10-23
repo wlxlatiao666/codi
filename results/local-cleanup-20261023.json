@@ -1,0 +1,745 @@
+{
+  "files": [
+    {
+      "path": "analysis/.DS_Store",
+      "bytes": 6148
+    },
+    {
+      "path": "analysis/sim_cot_20261008/launch_evidence/smoke-controller.log",
+      "bytes": 43
+    },
+    {
+      "path": "analysis/sim_cot_20261008/launch_evidence/main-controller.log",
+      "bytes": 274
+    },
+    {
+      "path": "analysis/sim_cot_20261008/audit_20261009/sim-trimmed-phase-8.log",
+      "bytes": 211943
+    },
+    {
+      "path": "analysis/continuation_fullaux_20261008/launch_evidence/main-controller.log",
+      "bytes": 322
+    },
+    {
+      "path": "analysis/continuation_fullaux_20261008/launch_evidence/tests.log",
+      "bytes": 810
+    },
+    {
+      "path": "analysis/continuation_search_20260930/source/src/__pycache__/model.cpython-311.pyc",
+      "bytes": 26506
+    },
+    {
+      "path": "analysis/continuation_search_20260930/source/src/__pycache__/continuation.cpython-311.pyc",
+      "bytes": 9567
+    },
+    {
+      "path": "analysis/continuation_search_20260930/launch_evidence/main-controller.log",
+      "bytes": 65
+    },
+    {
+      "path": "analysis/continuation_search_20260930/launch_evidence/tests.log",
+      "bytes": 809
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/smoke-controller.log",
+      "bytes": 43
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/main-controller.log",
+      "bytes": 775
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/tests.log",
+      "bytes": 809
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r33/eval-epoch-8.log",
+      "bytes": 1866
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r33/phase-8.log",
+      "bytes": 385256
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r33/eval-epoch-4.log",
+      "bytes": 1855
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r33/run/gpt2/ep_40/lr_0.003/seed_11/trainer_state.json",
+      "bytes": 531272
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/eval-epoch-40.log",
+      "bytes": 1891
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/eval-epoch-8.log",
+      "bytes": 1869
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/phase-40.log",
+      "bytes": 1545442
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/test.log",
+      "bytes": 3276
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/eval-epoch-36.log",
+      "bytes": 1888
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/phase-8.log",
+      "bytes": 385101
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/eval-epoch-20.log",
+      "bytes": 1878
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/eval-epoch-24.log",
+      "bytes": 1883
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/eval-epoch-32.log",
+      "bytes": 1887
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/eval-epoch-16.log",
+      "bytes": 1876
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/eval-epoch-28.log",
+      "bytes": 1887
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/eval-epoch-12.log",
+      "bytes": 1873
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/eval-epoch-4.log",
+      "bytes": 1864
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k3-r50/run/gpt2/ep_40/lr_0.003/seed_11/trainer_state.json",
+      "bytes": 2666782
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/eval-epoch-40.log",
+      "bytes": 1891
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/eval-epoch-8.log",
+      "bytes": 1874
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/phase-40.log",
+      "bytes": 1545564
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/test.log",
+      "bytes": 3277
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/eval-epoch-36.log",
+      "bytes": 1885
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/phase-8.log",
+      "bytes": 385174
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/eval-epoch-20.log",
+      "bytes": 1882
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/eval-epoch-24.log",
+      "bytes": 1885
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/eval-epoch-32.log",
+      "bytes": 1889
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/eval-epoch-16.log",
+      "bytes": 1869
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/eval-epoch-28.log",
+      "bytes": 1884
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/eval-epoch-12.log",
+      "bytes": 1873
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/eval-epoch-4.log",
+      "bytes": 1868
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r33/run/gpt2/ep_40/lr_0.003/seed_11/trainer_state.json",
+      "bytes": 2666984
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r50/eval-epoch-8.log",
+      "bytes": 1864
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r50/phase-8.log",
+      "bytes": 385094
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r50/eval-epoch-4.log",
+      "bytes": 1865
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/k4-r50/run/gpt2/ep_40/lr_0.003/seed_11/trainer_state.json",
+      "bytes": 531104
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/detach-check/eval-epoch-8.log",
+      "bytes": 1870
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/detach-check/phase-8.log",
+      "bytes": 384623
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/detach-check/eval-epoch-4.log",
+      "bytes": 1868
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/detach-check/run/gpt2/ep_40/lr_0.003/seed_11/trainer_state.json",
+      "bytes": 530605
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/first-step-check/eval-epoch-8.log",
+      "bytes": 1884
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/first-step-check/phase-8.log",
+      "bytes": 385105
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/first-step-check/eval-epoch-4.log",
+      "bytes": 1875
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/first-step-check/run/gpt2/ep_40/lr_0.003/seed_11/trainer_state.json",
+      "bytes": 531068
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-detach/phase-1.log",
+      "bytes": 4052
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-detach/phase-2.log",
+      "bytes": 3890
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-detach/eval-epoch-2.log",
+      "bytes": 1119
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-detach/eval-epoch-1.log",
+      "bytes": 1118
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-detach/run/gpt2/ep_40/lr_0.003/seed_11/trainer_state.json",
+      "bytes": 7360
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-first/phase-1.log",
+      "bytes": 4049
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-first/phase-2.log",
+      "bytes": 3877
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-first/eval-epoch-2.log",
+      "bytes": 1112
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-first/eval-epoch-1.log",
+      "bytes": 1111
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-first/run/gpt2/ep_40/lr_0.003/seed_11/trainer_state.json",
+      "bytes": 7359
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-random/phase-1.log",
+      "bytes": 4064
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-random/phase-2.log",
+      "bytes": 3900
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-random/eval-epoch-2.log",
+      "bytes": 1119
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-random/eval-epoch-1.log",
+      "bytes": 1118
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-random/run/gpt2/ep_40/lr_0.003/seed_11/trainer_state.json",
+      "bytes": 7383
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/eval-epoch-40.log",
+      "bytes": 1896
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/eval-epoch-8.log",
+      "bytes": 1866
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/phase-40.log",
+      "bytes": 1546287
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/test.log",
+      "bytes": 3283
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/eval-epoch-36.log",
+      "bytes": 1896
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/phase-8.log",
+      "bytes": 385156
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/eval-epoch-20.log",
+      "bytes": 1885
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/eval-epoch-24.log",
+      "bytes": 1887
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/eval-epoch-32.log",
+      "bytes": 1894
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/eval-epoch-16.log",
+      "bytes": 1881
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/eval-epoch-28.log",
+      "bytes": 1889
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/eval-epoch-12.log",
+      "bytes": 1881
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/eval-epoch-4.log",
+      "bytes": 1868
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/random-cut/run/gpt2/ep_40/lr_0.003/seed_11/trainer_state.json",
+      "bytes": 2667603
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-fixed/phase-1.log",
+      "bytes": 4043
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-fixed/phase-2.log",
+      "bytes": 3886
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-fixed/eval-epoch-2.log",
+      "bytes": 1112
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-fixed/eval-epoch-1.log",
+      "bytes": 1111
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/smoke-fixed/run/gpt2/ep_40/lr_0.003/seed_11/trainer_state.json",
+      "bytes": 7367
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/eval-epoch-40.log",
+      "bytes": 1884
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/eval-epoch-8.log",
+      "bytes": 1870
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/phase-40.log",
+      "bytes": 1472440
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/test.log",
+      "bytes": 3280
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/eval-epoch-36.log",
+      "bytes": 1892
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/phase-8.log",
+      "bytes": 367147
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/eval-epoch-20.log",
+      "bytes": 1879
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/eval-epoch-24.log",
+      "bytes": 1884
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/eval-epoch-32.log",
+      "bytes": 1887
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/eval-epoch-16.log",
+      "bytes": 1878
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/eval-epoch-28.log",
+      "bytes": 1890
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/eval-epoch-12.log",
+      "bytes": 1866
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/eval-epoch-4.log",
+      "bytes": 1862
+    },
+    {
+      "path": "analysis/continuation_search_20260930/results_20261008/runs/base-codi/run/gpt2/ep_40/lr_0.003/seed_11/trainer_state.json",
+      "bytes": 2575855
+    },
+    {
+      "path": "analysis/continuation_search_20260930/remote_snapshot/source-retrain-20260914/src/__pycache__/model.cpython-311.pyc",
+      "bytes": 26506
+    },
+    {
+      "path": "analysis/continuation_search_20260930/remote_snapshot/source-retrain-20260914/src/__pycache__/continuation.cpython-311.pyc",
+      "bytes": 9567
+    },
+    {
+      "path": "analysis/multiarith_full_20261012/results/official-sim/multi-arith-full/eval.log",
+      "bytes": 2041
+    },
+    {
+      "path": "analysis/multiarith_full_20261012/results/random-cut/multi-arith-full/eval.log",
+      "bytes": 2045
+    },
+    {
+      "path": "analysis/multiarith_full_20261012/results/dual-random/multi-arith-full/eval.log",
+      "bytes": 2076
+    },
+    {
+      "path": "analysis/multiarith_full_20261012/results/base-codi/multi-arith-full/eval.log",
+      "bytes": 2069
+    },
+    {
+      "path": "analysis/multiarith_full_20261012/results-by-split/official-sim/multi-arith-full/eval.log",
+      "bytes": 2065
+    },
+    {
+      "path": "analysis/multiarith_full_20261012/results-by-split/random-cut/multi-arith-full/eval.log",
+      "bytes": 2096
+    },
+    {
+      "path": "analysis/multiarith_full_20261012/results-by-split/dual-random/multi-arith-full/eval.log",
+      "bytes": 2101
+    },
+    {
+      "path": "analysis/multiarith_full_20261012/results-by-split/base-codi/multi-arith-full/eval.log",
+      "bytes": 2094
+    },
+    {
+      "path": "analysis/ood_aligned_20261014/results/continuation/multi-arith-full/eval.log",
+      "bytes": 1723
+    },
+    {
+      "path": "analysis/ood_aligned_20261014/results/continuation/svamp/eval.log",
+      "bytes": 1586
+    },
+    {
+      "path": "analysis/ood_aligned_20261014/results/continuation/gsm-hard/eval.log",
+      "bytes": 1695
+    },
+    {
+      "path": "analysis/ood_aligned_20261014/results/sim/multi-arith-full/eval.log",
+      "bytes": 1714
+    },
+    {
+      "path": "analysis/ood_aligned_20261014/results/sim/svamp/eval.log",
+      "bytes": 1575
+    },
+    {
+      "path": "analysis/ood_aligned_20261014/results/sim/gsm-hard/eval.log",
+      "bytes": 1686
+    },
+    {
+      "path": "analysis/ood_aligned_20261014/results/codi/multi-arith-full/eval.log",
+      "bytes": 1687
+    },
+    {
+      "path": "analysis/ood_aligned_20261014/results/codi/svamp/eval.log",
+      "bytes": 1577
+    },
+    {
+      "path": "analysis/ood_aligned_20261014/results/codi/gsm-hard/eval.log",
+      "bytes": 1685
+    },
+    {
+      "path": "analysis/ood_20261012/results/official-sim/svamp/eval.log",
+      "bytes": 2713
+    },
+    {
+      "path": "analysis/ood_20261012/results/official-sim/gsm-hard/eval.log",
+      "bytes": 3232
+    },
+    {
+      "path": "analysis/ood_20261012/results/official-sim/multi-arith/eval.log",
+      "bytes": 1415
+    },
+    {
+      "path": "analysis/ood_20261012/results/random-cut/svamp/eval.log",
+      "bytes": 2716
+    },
+    {
+      "path": "analysis/ood_20261012/results/random-cut/gsm-hard/eval.log",
+      "bytes": 3246
+    },
+    {
+      "path": "analysis/ood_20261012/results/random-cut/multi-arith/eval.log",
+      "bytes": 1416
+    },
+    {
+      "path": "analysis/ood_20261012/results/dual-random/svamp/eval.log",
+      "bytes": 2722
+    },
+    {
+      "path": "analysis/ood_20261012/results/dual-random/gsm-hard/eval.log",
+      "bytes": 3248
+    },
+    {
+      "path": "analysis/ood_20261012/results/dual-random/multi-arith/eval.log",
+      "bytes": 1422
+    },
+    {
+      "path": "analysis/ood_20261012/results/base-codi/svamp/eval.log",
+      "bytes": 2713
+    },
+    {
+      "path": "analysis/ood_20261012/results/base-codi/gsm-hard/eval.log",
+      "bytes": 3243
+    },
+    {
+      "path": "analysis/ood_20261012/results/base-codi/multi-arith/eval.log",
+      "bytes": 1415
+    },
+    {
+      "path": "analysis/attention_aligned_20261012/.DS_Store",
+      "bytes": 8196
+    },
+    {
+      "path": "analysis/attention_aligned_20261012/source/.DS_Store",
+      "bytes": 6148
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-h20-20260930/A-11.log",
+      "bytes": 6558
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-h20-20260930/B-23-boundary.log",
+      "bytes": 841
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-h20-20260930/B-23.log",
+      "bytes": 6551
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-h20-20260930/A-11-boundary.log",
+      "bytes": 841
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-h20-20260930/B-11.log",
+      "bytes": 6553
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-h20-20260930/A-23-boundary.log",
+      "bytes": 839
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-h20-20260930/reference-today-A-11.log",
+      "bytes": 3145
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-h20-20260930/B-11-boundary.log",
+      "bytes": 840
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-h20-20260930/A-23.log",
+      "bytes": 6564
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-h20-20260930/B-23/diversity.jsonl",
+      "bytes": 4063584
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-h20-20260930/A-11/diversity.jsonl",
+      "bytes": 4068707
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-h20-20260930/B-11/diversity.jsonl",
+      "bytes": 4062422
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-h20-20260930/A-23/diversity.jsonl",
+      "bytes": 4065081
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-forced-h20-20260930/A-11.log",
+      "bytes": 1838
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-forced-h20-20260930/B-23.log",
+      "bytes": 1840
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-forced-h20-20260930/B-11.log",
+      "bytes": 1838
+    },
+    {
+      "path": "analysis/latent_tradeoff_20260930/results/latent-tradeoff-forced-h20-20260930/A-23.log",
+      "bytes": 1838
+    },
+    {
+      "path": "analysis/latent_readout_20260930/results/A-11.log",
+      "bytes": 3019
+    },
+    {
+      "path": "analysis/latent_readout_20260930/results/B-23.log",
+      "bytes": 3019
+    },
+    {
+      "path": "analysis/latent_readout_20260930/results/B-11.log",
+      "bytes": 3019
+    },
+    {
+      "path": "analysis/latent_readout_20260930/results/A-23.log",
+      "bytes": 3019
+    },
+    {
+      "path": "analysis/latent_readout_20260930/results/B-23/readout.jsonl",
+      "bytes": 12429068
+    },
+    {
+      "path": "analysis/latent_readout_20260930/results/A-11/readout.jsonl",
+      "bytes": 12504661
+    },
+    {
+      "path": "analysis/latent_readout_20260930/results/B-11/readout.jsonl",
+      "bytes": 12503537
+    },
+    {
+      "path": "analysis/latent_readout_20260930/results/A-23/readout.jsonl",
+      "bytes": 12533372
+    },
+    {
+      "path": "analysis/sim_audit_20261012/controller.log",
+      "bytes": 1047
+    },
+    {
+      "path": "analysis/sim_audit_20261012/results/official-sim/eval.log",
+      "bytes": 1501
+    },
+    {
+      "path": "analysis/sim_audit_20261012/results/base-codi/eval.log",
+      "bytes": 1488
+    },
+    {
+      "path": "analysis/gsm8k_aug_id_20261014/results/continuation/gsm8k-aug/eval.log",
+      "bytes": 1508
+    },
+    {
+      "path": "analysis/gsm8k_aug_id_20261014/results/sim/gsm8k-aug/eval.log",
+      "bytes": 1498
+    },
+    {
+      "path": "analysis/gsm8k_aug_id_20261014/results/codi/gsm8k-aug/eval.log",
+      "bytes": 1500
+    },
+    {
+      "path": "analysis/sim_cot_official_20261009/launch_evidence/smoke-controller.log",
+      "bytes": 187
+    },
+    {
+      "path": "analysis/sim_cot_official_20261009/launch_evidence/main-controller.log",
+      "bytes": 77
+    },
+    {
+      "path": "experiments/all-cuts-cut-probe-20261023/analysis.log",
+      "bytes": 7264
+    },
+    {
+      "path": "experiments/window-suffix-20261022/launch.log",
+      "bytes": 2401
+    },
+    {
+      "path": "experiments/aligned-step-20261021/launch.log",
+      "bytes": 3071
+    },
+    {
+      "path": "experiments/base-codi-cut-probe-20261020/analysis.log",
+      "bytes": 7240
+    },
+    {
+      "path": "experiments/fixed-codi-cut-probe-20261021/analysis.log",
+      "bytes": 7231
+    },
+    {
+      "path": "experiments/local-search-20261015/completed-results/final/fixed-control/test/eval.log",
+      "bytes": 1500
+    },
+    {
+      "path": "experiments/local-search-20261015/completed-results/final/fixed-control/multi-arith-full/eval.log",
+      "bytes": 1695
+    },
+    {
+      "path": "experiments/local-search-20261015/completed-results/final/fixed-control/svamp/eval.log",
+      "bytes": 1584
+    },
+    {
+      "path": "experiments/local-search-20261015/completed-results/final/fixed-control/gsm-hard/eval.log",
+      "bytes": 1694
+    },
+    {
+      "path": "experiments/local-search-20261015/completed-results/final/adaptive/test/eval.log",
+      "bytes": 1499
+    },
+    {
+      "path": "experiments/local-search-20261015/completed-results/final/adaptive/multi-arith-full/eval.log",
+      "bytes": 1694
+    },
+    {
+      "path": "experiments/local-search-20261015/completed-results/final/adaptive/svamp/eval.log",
+      "bytes": 1585
+    },
+    {
+      "path": "experiments/local-search-20261015/completed-results/final/adaptive/gsm-hard/eval.log",
+      "bytes": 1694
+    },
+    {
+      "path": "scripts/cut_probe/__pycache__/analyze.cpython-312.pyc",
+      "bytes": 26061
+    }
+  ],
+  "removed_bytes": 88774266
+}

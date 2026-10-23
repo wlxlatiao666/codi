@@ -1,0 +1,6 @@
+{
+  "reference": "experiments/base-codi-cut-probe-20261020",
+  "identical_sample_ids_weights_token_counts": true,
+  "j_definition": "skipped explicit steps; target steps j+1..m plus answer",
+  "no_training_weight_multiplier": true
+}

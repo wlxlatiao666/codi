@@ -1,0 +1,135 @@
+{
+  "passed": true,
+  "shared_training_parameters": {
+    "expt_name": "run",
+    "model_name_or_path": "/home/tiger/codi-ab-c71db6e-20260909/assets/models/gpt2",
+    "data_name": "icot",
+    "seed": "11",
+    "model_max_length": "512",
+    "per_device_train_batch_size": "64",
+    "gradient_accumulation_steps": "2",
+    "bf16": "True",
+    "num_train_epochs": "40",
+    "learning_rate": "0.003",
+    "max_grad_norm": "2",
+    "use_lora": "True",
+    "lora_init": "True",
+    "lora_r": "128",
+    "lora_alpha": "32",
+    "save_strategy": "no",
+    "save_safetensors": "False",
+    "weight_decay": "0.1",
+    "warmup_ratio": "0.03",
+    "lr_scheduler_type": "cosine",
+    "report_to": "none",
+    "logging_steps": "20",
+    "disable_tqdm": "True",
+    "num_latent": "6",
+    "use_prj": "True",
+    "prj_dim": "768",
+    "prj_dropout": "0",
+    "distill_loss_type": "smooth_l1",
+    "distill_loss_div_std": "True",
+    "distill_loss_factor": "1",
+    "ref_loss_factor": "1",
+    "remove_eos": "True",
+    "fix_attn_mask": "False",
+    "include_last_cot": "False",
+    "explain_loss_factor": "1",
+    "print_ref_model_stats": "False",
+    "remove_unused_columns": "False"
+  },
+  "method_differences": {
+    "codi": {
+      "use_decoder": "False",
+      "continuation_weight": "0.0"
+    },
+    "sim": {
+      "use_decoder": "True",
+      "continuation_weight": "0.0"
+    },
+    "fixed_original": {
+      "use_decoder": "False",
+      "continuation_weight": "0.3"
+    },
+    "fixed_control": {
+      "use_decoder": "False",
+      "continuation_weight": "0.3"
+    },
+    "all_cuts": {
+      "use_decoder": "False",
+      "continuation_weight": "0.3"
+    },
+    "aligned_step": {
+      "use_decoder": "False",
+      "continuation_weight": "0.3"
+    },
+    "window_suffix": {
+      "use_decoder": "False",
+      "continuation_weight": "0.3"
+    }
+  },
+  "operational_differences": {
+    "codi": {
+      "output_dir": "/home/tiger/codi-ab-c71db6e-20260909/attention-aligned-20261012/runs/codi",
+      "save_total_limit": "2",
+      "print_loss": "True"
+    },
+    "sim": {
+      "output_dir": "/home/tiger/codi-ab-c71db6e-20260909/attention-aligned-20261012/runs/sim",
+      "save_total_limit": "2",
+      "print_loss": "True"
+    },
+    "fixed_original": {
+      "output_dir": "/home/tiger/codi-ab-c71db6e-20260909/attention-aligned-20261012/runs/continuation",
+      "save_total_limit": "2",
+      "print_loss": "True"
+    },
+    "fixed_control": {
+      "output_dir": "/home/tiger/codi-ab-c71db6e-20260909/random-disturb-20261015/runs/fixed-control",
+      "save_total_limit": "1",
+      "print_loss": "False"
+    },
+    "all_cuts": {
+      "output_dir": "/home/tiger/codi-ab-c71db6e-20260909/all-cuts-20261020/runs/full",
+      "save_total_limit": "1",
+      "print_loss": "False"
+    },
+    "aligned_step": {
+      "output_dir": "/home/tiger/codi-ab-c71db6e-20260909/aligned-step-20261021/runs/full",
+      "save_total_limit": "1",
+      "print_loss": "False"
+    },
+    "window_suffix": {
+      "output_dir": "/home/tiger/codi-ab-c71db6e-20260909/window-suffix-20261022/runs/full",
+      "save_total_limit": "1",
+      "print_loss": "False"
+    }
+  },
+  "new_methods_initialization_and_data": {
+    "all_cuts": {
+      "samples": 383368,
+      "max_steps": 119840,
+      "main_data_sha256": "4e3a27e14588a038ec501b9981b15da14c3520d8e14e60d3f133b9681dae4176",
+      "model_state_sha256": "7756126d7ee21518de4060ff7df63400219a5ac1e0e46dfa852a8a13a659ec16"
+    },
+    "aligned_step": {
+      "samples": 383368,
+      "max_steps": 119840,
+      "main_data_sha256": "4e3a27e14588a038ec501b9981b15da14c3520d8e14e60d3f133b9681dae4176",
+      "model_state_sha256": "7756126d7ee21518de4060ff7df63400219a5ac1e0e46dfa852a8a13a659ec16"
+    },
+    "window_suffix": {
+      "samples": 383368,
+      "max_steps": 119840,
+      "main_data_sha256": "4e3a27e14588a038ec501b9981b15da14c3520d8e14e60d3f133b9681dae4176",
+      "model_state_sha256": "7756126d7ee21518de4060ff7df63400219a5ac1e0e46dfa852a8a13a659ec16"
+    }
+  },
+  "limitations": [
+    "SIM-CoT uses its original independent decoder and explain_loss_factor=1, not continuation loss=0.3.",
+    "Auxiliary target eligibility and aggregation differ intentionally by method.",
+    "fixed_control resumes the shared epoch8 fixed-policy warmup; it is not the same run as fixed_original.",
+    "Equal seed and shared initialization do not imply identical dropout RNG trajectories across different forward methods."
+  ]
+}

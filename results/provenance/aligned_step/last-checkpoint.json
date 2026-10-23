@@ -1,0 +1,6 @@
+{
+  "epoch": 32.0,
+  "step": 95872,
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/aligned-step-20261021/runs/full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-95872",
+  "pairs_sixths": "j=ceil(k*m/6); single step only; equal k weight 0.05"
+}

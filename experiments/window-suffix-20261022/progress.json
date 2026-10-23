@@ -1,0 +1,36 @@
+{
+  "step": 20,
+  "epoch": 0.006676681689200467,
+  "updated": 1792650688.3969078,
+  "pairs_sixths": "continuous <=3 suffix starts around ceil(k*m/6); equal k weight 0.05",
+  "metrics": {
+    "loss": 13.349065780639648,
+    "epoch": 0.006676681689200467,
+    "window_suffix": {
+      "latent_cuts": 6,
+      "branches_per_k": [
+        93,
+        93,
+        93,
+        93,
+        93,
+        93
+      ],
+      "per_k_loss": [
+        7.708275318145752,
+        7.378274917602539,
+        7.003519058227539,
+        6.903131008148193,
+        6.791473865509033,
+        6.714235305786133
+      ]
+    },
+    "ce_loss": 6.102077484130859,
+    "distill_loss": 0.30236372351646423,
+    "ref_ce_loss": 4.819678783416748,
+    "explain_loss": null,
+    "continuation_loss": 7.083151817321777,
+    "grad_norm": 33.371055603027344,
+    "learning_rate": 1.585094549499444e-05
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "parent": [
+    [
+      3,
+      2
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      5,
+      3
+    ]
+  ],
+  "mutation": {
+    "pairs": [
+      [
+        2,
+        2
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ],
+    "slot": 0,
+    "axis": "k",
+    "delta": -1
+  },
+  "source": {
+    "epoch": 16.0,
+    "step": 47936,
+    "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/random-disturb-20261015/runs/advance-16/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-47936",
+    "pairs_sixths": [
+      [
+        3,
+        2
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        5,
+        3
+      ]
+    ]
+  },
+  "affected_eligible_samples": 177390
+}

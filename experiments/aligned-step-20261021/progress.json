@@ -1,0 +1,37 @@
+{
+  "step": 40,
+  "epoch": 0.013353363378400934,
+  "updated": 1792569221.0945094,
+  "pairs_sixths": "j=ceil(k*m/6); single step only; equal k weight 0.05",
+  "metrics": {
+    "loss": 10.746027946472168,
+    "epoch": 0.013353363378400934,
+    "aligned_step": {
+      "latent_cuts": 6,
+      "samples": 53,
+      "supervised_tokens_per_k": [
+        466,
+        466,
+        470,
+        471,
+        480,
+        480
+      ],
+      "per_k_loss": [
+        7.335087299346924,
+        6.651886940002441,
+        6.217292785644531,
+        6.150144577026367,
+        6.135143756866455,
+        6.113268852233887
+      ]
+    },
+    "ce_loss": 4.128669738769531,
+    "distill_loss": 0.268766313791275,
+    "ref_ce_loss": 4.418450355529785,
+    "explain_loss": null,
+    "continuation_loss": 6.433803558349609,
+    "grad_norm": 12.278428077697754,
+    "learning_rate": 3.253615127919911e-05
+  }
+}

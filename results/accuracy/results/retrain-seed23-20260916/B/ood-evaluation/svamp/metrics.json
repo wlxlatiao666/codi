@@ -1,0 +1,12 @@
+{
+  "dataset": "svamp",
+  "accuracy": 0.434,
+  "correct": 434,
+  "total": 1000,
+  "duration_seconds": 8.849579811096191,
+  "peak_cuda_bytes": 582999040,
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/results/retrain-seed23-20260916/B/run/gpt2/ep_40/lr_0.003/seed_23",
+  "decoding": "greedy",
+  "latent_steps": 6,
+  "max_answer_tokens": 64
+}

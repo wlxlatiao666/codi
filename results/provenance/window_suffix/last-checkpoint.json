@@ -1,0 +1,6 @@
+{
+  "epoch": 10.0,
+  "step": 29960,
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/window-suffix-20261022/runs/full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-29960",
+  "pairs_sixths": "continuous <=3 suffix starts around ceil(k*m/6); equal k weight 0.05"
+}

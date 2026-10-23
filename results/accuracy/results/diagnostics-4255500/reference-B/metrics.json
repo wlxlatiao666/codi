@@ -1,0 +1,11 @@
+{
+  "accuracy": 0.41925701288855194,
+  "correct": 553,
+  "total": 1319,
+  "duration_seconds": 12.476325750350952,
+  "peak_cuda_bytes": 961829888,
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/results/full/B/run/gpt2/ep_40/lr_0.003/seed_11",
+  "decoding": "greedy",
+  "latent_steps": 6,
+  "max_answer_tokens": 64
+}

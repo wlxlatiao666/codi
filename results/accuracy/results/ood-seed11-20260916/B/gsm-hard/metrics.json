@@ -1,0 +1,12 @@
+{
+  "dataset": "gsm-hard",
+  "accuracy": 0.1106899166034875,
+  "correct": 146,
+  "total": 1319,
+  "duration_seconds": 13.114606618881226,
+  "peak_cuda_bytes": 961371136,
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/results/retrain-original-20260914/B/run/gpt2/ep_40/lr_0.003/seed_11",
+  "decoding": "greedy",
+  "latent_steps": 6,
+  "max_answer_tokens": 64
+}

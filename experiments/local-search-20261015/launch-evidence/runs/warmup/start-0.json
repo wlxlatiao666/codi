@@ -1,0 +1,27 @@
+{
+  "pairs_sixths": [
+    [
+      3,
+      2
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      5,
+      4
+    ]
+  ],
+  "start_step": 0,
+  "max_steps": 119840,
+  "samples": 383368,
+  "main_data_sha256": "4e3a27e14588a038ec501b9981b15da14c3520d8e14e60d3f133b9681dae4176",
+  "model_state_sha256": "7756126d7ee21518de4060ff7df63400219a5ac1e0e46dfa852a8a13a659ec16",
+  "resume": null,
+  "optimizer_has_state": false,
+  "lr": 0.0,
+  "scheduler_last_epoch": 0,
+  "optimizer_state_entries": 0,
+  "smoke": false
+}

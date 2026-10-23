@@ -1,0 +1,22 @@
+{
+  "name": "fixed-control",
+  "pairs_sixths": [
+    [
+      3,
+      2
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      5,
+      4
+    ]
+  ],
+  "stop": 40,
+  "gpu": 2,
+  "source_checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/random-disturb-20261015/runs/warmup/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-23968",
+  "evaluate_each_epoch": false,
+  "smoke": false
+}
