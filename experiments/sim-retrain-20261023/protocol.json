@@ -1,0 +1,21 @@
+{
+  "method": "CODI + SIM-CoT",
+  "gpu": 3,
+  "eval_gpu": 3,
+  "epochs": 40,
+  "seed": 11,
+  "batch": 64,
+  "accumulation": 2,
+  "lr": 0.003,
+  "explain_loss_factor": 1,
+  "continuation_weight": 0,
+  "use_decoder": true,
+  "num_latent": 6,
+  "save_each_epoch": true,
+  "keep_latest": 2,
+  "eval_every_epochs": 4,
+  "allocator_fraction": 0.8,
+  "shared_eval_lock": "/home/tiger/codi-ab-c71db6e-20260909/all-cuts-20261020/eval.lock",
+  "source": "unchanged scripts/reproduce/train_entry.py",
+  "recovery": "new training; original weights not recovered"
+}

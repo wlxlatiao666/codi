@@ -1,0 +1,26 @@
+{
+  "codi-base-gpt2": {
+    "repo_id": "wlxlatiao/codi-base-gpt2",
+    "url": "https://huggingface.co/wlxlatiao/codi-base-gpt2",
+    "commit": "250a4090eb41e14a82500a25c0b2eaf29544505d",
+    "private": true,
+    "verified_files": 20,
+    "sha256_verified": true
+  },
+  "codi-fixed-three-cut-gpt2": {
+    "repo_id": "wlxlatiao/codi-fixed-three-cut-gpt2",
+    "url": "https://huggingface.co/wlxlatiao/codi-fixed-three-cut-gpt2",
+    "commit": "bd358315b3aea558c06464575094b187a4fc41e2",
+    "private": true,
+    "verified_files": 20,
+    "sha256_verified": true
+  },
+  "codi-all-cuts-gpt2": {
+    "repo_id": "wlxlatiao/codi-all-cuts-gpt2",
+    "url": "https://huggingface.co/wlxlatiao/codi-all-cuts-gpt2",
+    "commit": "fa3636f426319a876a7606b026c45c6e37108f5c",
+    "private": true,
+    "verified_files": 20,
+    "sha256_verified": true
+  }
+}

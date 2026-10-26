@@ -1,0 +1,23 @@
+{
+  "aggregation": "mean_k mean_valid_sample mean_window mean_token CE; total weight=0.3",
+  "chunk_size": 64,
+  "pairs_sixths": "continuous <=3 suffix starts around ceil(k*m/6); equal k weight 0.05",
+  "start_step": 74900,
+  "max_steps": 119840,
+  "samples": 383368,
+  "main_data_sha256": "4e3a27e14588a038ec501b9981b15da14c3520d8e14e60d3f133b9681dae4176",
+  "model_state_sha256": "b0584be1e193431d16dbcfb3e04d2f81de699378d3ef66c6f134658e1bd89bab",
+  "resume": "/home/tiger/codi-ab-c71db6e-20260909/window-suffix-20261022/runs/full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-74900",
+  "optimizer_has_state": true,
+  "lr": 0.0009768501290003612,
+  "scheduler_last_epoch": 74900,
+  "optimizer_state_entries": 102,
+  "smoke": false,
+  "source_checkpoint_sha256": {
+    "pytorch_model.bin": "f14ae25ce504e5ebe807a72d645d8db455689b78d9ecdb7172d6ef2ce46176c5",
+    "optimizer.pt": "7f1daf2ee95477650ddab852b23a0cbadc4240f3648d6e20496f4c5ed83f9c15",
+    "scheduler.pt": "b99d8546f848566bce0c83bb4cde90c4785cdbd1b57d6d11f34ca3cbf43648c5",
+    "rng_state.pth": "7b901c400f4d39fd227cd73c463ff62d637b5c2dae37eec9752e41ae3b4c3417",
+    "trainer_state.json": "aee54bb8dfa36911ee6e93b2df5b4966fd509ca0d754810905ce963b6e3682a1"
+  }
+}

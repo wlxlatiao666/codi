@@ -1,0 +1,19 @@
+{
+  "method": "sim",
+  "official_base_commit": "d1d56afbe705cfcbf5911b588da6c3083825598d",
+  "historical_core_byte_identical": true,
+  "model_file_sha256": "a88d469850b29ebc850bf89f1d86e78e27ae4b2376a8dc9572d70cac5f322349",
+  "train_file_sha256": "aff8a63996aec2cef8c2679e21fb67e3109fded309ee5423b2c101a53d7d180a",
+  "main_data_sha256": "4e3a27e14588a038ec501b9981b15da14c3520d8e14e60d3f133b9681dae4176",
+  "train_samples": 383368,
+  "max_steps": 119840,
+  "seed": 11,
+  "batch": 64,
+  "accumulation": 2,
+  "learning_rate": 0.003,
+  "fix_attn_mask": false,
+  "explain_loss_factor": 1.0,
+  "scheduler_horizon_epochs": 40,
+  "global_step": 98868,
+  "trainable_parameters": 144496896
+}

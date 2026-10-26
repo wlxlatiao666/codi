@@ -1,0 +1,18 @@
+{
+  "accuracy": 0.423,
+  "correct": 423,
+  "total": 1000,
+  "duration_seconds": 2.582274913787842,
+  "peak_cuda_bytes": 2226679808,
+  "checkpoint": "/home/tiger/codi-ab-c71db6e-20260909/aligned-step-20261021/runs/full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840",
+  "decoding": "greedy",
+  "latent_steps": 6,
+  "max_answer_tokens": 256,
+  "inference_protocol": "official-style padding positions and cached attention; batch128",
+  "data_path": "/home/tiger/codi-ab-c71db6e-20260909/assets/datasets/ood-20260916/svamp",
+  "data_sha256": "07abb570222e0bd28fdac229f37b11a1af3ed808dcadd18e3e5f2357ec926af7",
+  "batch_size": 128,
+  "split": "svamp",
+  "strict_accuracy": 0.423,
+  "truncated": 0
+}

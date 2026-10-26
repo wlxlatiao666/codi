@@ -1,0 +1,18 @@
+{
+  "codi-single-cut-k3-r50-gpt2": {
+    "repo_id": "wlxlatiao/codi-single-cut-k3-r50-gpt2",
+    "url": "https://huggingface.co/wlxlatiao/codi-single-cut-k3-r50-gpt2",
+    "commit": "2dd4d7ef82240a4b1ab46304cd81ba78c429f6d2",
+    "private": true,
+    "verified_files": 20,
+    "sha256_verified": true
+  },
+  "codi-aligned-step-gpt2": {
+    "repo_id": "wlxlatiao/codi-aligned-step-gpt2",
+    "url": "https://huggingface.co/wlxlatiao/codi-aligned-step-gpt2",
+    "commit": "6e6fbda6d2d73aa6f61b9227495d1e29be4051d3",
+    "private": true,
+    "verified_files": 20,
+    "sha256_verified": true
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "repo_id": "wlxlatiao/codi-single-cut-k3-r50-gpt2",
+  "private": true,
+  "checkpoint_source": "/home/tiger/codi-ab-c71db6e-20260909/single-cut-k3-r50-20261023/runs/full/run/gpt2/ep_40/lr_0.003/seed_11/checkpoint-119840",
+  "epoch": 40,
+  "step": 119840,
+  "files": {
+    "rng_state.pth": {
+      "bytes": 14244,
+      "sha256": "496eec3fce16c1975e03d744dfbc6f854b42c461e52d5d9b81a73cac652940cc"
+    },
+    "special_tokens_map.json": {
+      "bytes": 462,
+      "sha256": "6698088ab5d3196219bc68cf0c4d47a2820a0a3ca2047c6e242c2dea1855f668"
+    },
+    "pytorch_model.bin": {
+      "bytes": 329256242,
+      "sha256": "979b5ae01e3fce0edea4cee2b8057193bdc6523af2db5d6fbef4fbcf7b53490f"
+    },
+    "training_args.bin": {
+      "bytes": 6264,
+      "sha256": "80117cac7a8adfa8a813f2615afc222df6a02610fda8920b580f01159164ce38"
+    },
+    "added_tokens.json": {
+      "bytes": 21,
+      "sha256": "89fb9810499a987be5ae390c02f096ad47ade990fe2e7a4e8ea2f2e3487ed232"
+    },
+    "README.md": {
+      "bytes": 1029,
+      "sha256": "a9709336c0906630bd06d97b094e82332940c7d55f0aa2ee6475bdad5e099d53"
+    },
+    "tokenizer_config.json": {
+      "bytes": 745,
+      "sha256": "2f539f572fd11b480fbf203e204bc8ea522cf03104e7f5cd3d17e946722109a8"
+    },
+    "merges.txt": {
+      "bytes": 456318,
+      "sha256": "1ce1664773c50f3e0cc8842619a93edc4624525b728b188a9e0be33b7726adc5"
+    },
+    "trainer_state.json": {
+      "bytes": 9477064,
+      "sha256": "48f5eac74e993a75191f35235fe7b593a04d39c91e01e77f6ec56124507b65fe"
+    },
+    "source.tar.gz": {
+      "bytes": 78361,
+      "sha256": "4555e6ebcc2f27d6c36eba5e7b63eea20ea69add011e81261054ecf3eef8a425"
+    },
+    "scheduler.pt": {
+      "bytes": 1064,
+      "sha256": "8b3eeac54f3174f31e6902ef2d3966cd54508927717ef881b7b935f2b57b9ad2"
+    },
+    "reproduction.json": {
+      "bytes": 4677,
+      "sha256": "ec8a0a3ecaaf3714a8b6e1eb9a8de25a7af6881504abc9b8bff1bdd3125bc1a0"
+    },
+    "vocab.json": {
+      "bytes": 999186,
+      "sha256": "f6bd25a65e4e63ca31360e9fb11c7e4f9a391a78385d640acd814092dd6eee4f"
+    },
+    "optimizer.pt": {
+      "bytes": 160542970,
+      "sha256": "c3f7ccb879a94fd29cfc19350751e5307e97dd30b8d6061589797f2d404b495f"
+    },
+    "evaluation/validation.json": {
+      "bytes": 516,
+      "sha256": "f96fb99ff942325d18821e15605520e338939377b1cd36c680d9a49627b30f0e"
+    },
+    "evaluation/multi-arith-full.json": {
+      "bytes": 958,
+      "sha256": "ed930236cb1a4c9bac83ebfd4d4ef28b0930771adad1fd1f368c6a592d8ae119"
+    },
+    "evaluation/svamp.json": {
+      "bytes": 701,
+      "sha256": "58eef637a47877501b52b5e444123953020f9a27c243f8e81135534f3de268dd"
+    },
+    "evaluation/gsm-hard.json": {
+      "bytes": 735,
+      "sha256": "8e95f96e156ccea06eaa9cde7d9dc0478145358f6d5551d51287b273861d977c"
+    },
+    "evaluation/test.json": {
+      "bytes": 530,
+      "sha256": "57c5b71834ae2882983bcfc7e25870ecc42c0781d12b792fc7f0bcfee9704e8c"
+    }
+  },
+  "total_bytes": 500842087
+}
